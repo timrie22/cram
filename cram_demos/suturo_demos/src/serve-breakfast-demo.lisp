@@ -148,7 +148,7 @@
                        ;; - placing the object
                        ;; - opening the gripper, thus releasing the object
                        (unless (search "CerealBox" ?current-object)
-                         (let ((?object-height (cl-transforms:z (get-target-size ?current-object)))
+                         (let ((?object-size (get-target-size ?current-object))
                                (?from-above (get-frontal-placing ?current-object))
                                (?neatly (get-neatly-placing ?current-object)))
                            ;;(call-text-to-speech-action "Placing object Cereal-Box")
@@ -156,7 +156,7 @@
                            (exe:perform (desig:an action
                                                   (type :placing)
                                                   (goal-pose ?target-pose)
-                                                  (object-height ?object-height)
+                                                  (object-size ?object-size)
                                                   (from-above ?from-above)
                                                   (neatly ?neatly)
                                                   (collision-mode :allow-all)))
@@ -183,13 +183,12 @@
         (park-robot)
         (move-hsr (make-pose-stamped-from-knowledge-result table))
         ;;(call-text-to-speech-action "Placing object Cereal-Box")
-        (let ((?object-height (cl-transforms:z ?object-size)))
           (exe:perform (desig:an action
                                  (type :placing)
                                  (goal-pose ?cereal-target-pose)
-                                 (object-height ?object-height)
+                                 (object-size ?object-size)
                                  (neatly T)
-                                 (collision-mode :allow-all))))
+                                 (collision-mode :allow-all)))
 
         (park-robot)
           ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
@@ -218,13 +217,12 @@
         (park-robot)
         (move-hsr (make-pose-stamped-from-knowledge-result table))
         ;;(call-text-to-speech-action "Placing object Cereal-Box")
-        (let ((?object-height (cl-transforms:z ?object-size)))
           (exe:perform (desig:an action
                                  (type :placing)
                                  (goal-pose ?milk-target-pose)
-                                 (object-height ?object-height)
+                                 (object-size ?object-size)
                                  (neatly T)
-                                 (collision-mode :allow-all))))
+                                 (collision-mode :allow-all)))
           (park-robot)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
