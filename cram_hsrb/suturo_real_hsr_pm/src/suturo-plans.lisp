@@ -16,7 +16,9 @@
                   ((:object-type ?object-type))
                   ((:goal-pose ?goal-pose))
                   ((:object-size ?object-size))
+                  ((:object-shape ?object-shape))
                   ((:object-name ?object-name))
+                  ((:from-above ?from-above))
                 &allow-other-keys)
   "Receives parameters from action-designator, and then executes the corresponding motions"
   (declare (type boolean ?move-base ?prefer-base ?straight-line ?precise-tracking
@@ -65,20 +67,26 @@
                               (align-planes-right ?align-planes-right)
                               (precise-tracking ?precise-tracking)
                               (goal-pose ?goal-pose)
+                              (from-above ?from-above)
                               (object-height ?object-height)
                               (object-name ?object-name)))
       
-      (exe:perform (desig:a motion
-                        (type gripper-motion)
-                        (:open-close :open)
-                        (effort 0.1)))
-      
         (exe:perform (desig:a motion
-                              (type reaching)
-                              (collision-mode ?collision-mode)
-                              (goal-pose ?goal-pose)
-                              (object-size ?object-size)
-                              (object-name ?object-name)))
+                              (type gripper-motion)
+                              (:open-close :open)
+                              (effort 0.1)))
+        (let ((?context `(("action" . "grasping")
+                          ("object_shape" . ,?object-shape))))
+          
+          (exe:perform (desig:a motion
+                                (type reaching)
+                                (collision-mode ?collision-mode)
+                                (goal-pose ?goal-pose)
+                                (object-size ?object-size)
+                                (object-shape ?object-shape)
+                                (object-name ?object-name)
+                                (from-above ?from-above)
+                                (context ?context))))
         
         (cpl:pursue
           (cpl:seq
@@ -143,7 +151,7 @@
                 ((:align-planes-right ?align-planes-right))
                 ((:precise-tracking ?precise-tracking))
                 ((:goal-pose ?goal-pose))
-                ((:object-height ?object-height))
+                ((:object-size ?object-size))
                 ((:from-above ?from-above))
                 ((:neatly ?neatly))
               &allow-other-keys)
@@ -151,37 +159,46 @@
   (declare (type boolean ?move-base ?prefer-base ?straight-line ?precise-tracking
                  ?align-planes-left ?align-planes-right))
 
-  (exe:perform (desig:a motion
-                        (type aligning-height)
-                        (collision-mode ?collision-mode)
-                        (collision-object-b ?collision-object-b)
-                        (collision-object-b-link ?collision-object-b-link)
-                        (collision-object-a ?collision-object-a)
-                        (allow-base ?move-base)
-                        (prefer-base ?prefer-base)
-                        (straight-line ?straight-line)
-                        (align-planes-left ?align-planes-left)
-                        (align-planes-right ?align-planes-right)
-                        (precise-tracking ?precise-tracking)
-                        (goal-pose ?goal-pose)
-                        (object-height ?object-height)
-                        (from-above ?from-above)))
+  (let ((?object-height (cl-transforms:z ?object-size)))
+    (exe:perform (desig:a motion
+                          (type aligning-height)
+                          (collision-mode ?collision-mode)
+                          (collision-object-b ?collision-object-b)
+                          (collision-object-b-link ?collision-object-b-link)
+                          (collision-object-a ?collision-object-a)
+                          (allow-base ?move-base)
+                          (prefer-base ?prefer-base)
+                          (straight-line ?straight-line)
+                          (align-planes-left ?align-planes-left)
+                          (align-planes-right ?align-planes-right)
+                          (precise-tracking ?precise-tracking)
+                          (goal-pose ?goal-pose)
+                          (object-height ?object-height)
+                          (from-above ?from-above))))
 
   (exe:perform (desig:a motion
-                        (type placing)
+                        (type reaching)
                         (collision-mode ?collision-mode)
-                        (collision-object-b ?collision-object-b)
-                        (collision-object-b-link ?collision-object-b-link)
-                        (collision-object-a ?collision-object-a)
-                        (allow-base ?move-base)
-                        (prefer-base ?prefer-base)
-                        (straight-line ?straight-line)
-                        (align-planes-left ?align-planes-left)
-                        (align-planes-right ?align-planes-right)
-                        (precise-tracking ?precise-tracking)
                         (goal-pose ?goal-pose)
-                        (object-height ?object-height)
-                        (from-above ?from-above)))
+                        (object-size ?object-size)
+                        (from-above ?from-above)
+                        (context "placing")))
+
+  ;; (exe:perform (desig:a motion
+  ;;                       (type placing)
+  ;;                       (collision-mode ?collision-mode)
+  ;;                       (collision-object-b ?collision-object-b)
+  ;;                       (collision-object-b-link ?collision-object-b-link)
+  ;;                       (collision-object-a ?collision-object-a)
+  ;;                       (allow-base ?move-base)
+  ;;                       (prefer-base ?prefer-base)
+  ;;                       (straight-line ?straight-line)
+  ;;                       (align-planes-left ?align-planes-left)
+  ;;                       (align-planes-right ?align-planes-right)
+  ;;                       (precise-tracking ?precise-tracking)
+  ;;                       (goal-pose ?goal-pose)
+  ;;                       (object-height ?object-height)
+  ;;                       (from-above ?from-above)))
 
   (when ?neatly
     (exe:perform (desig:a motion
@@ -254,7 +271,8 @@
                         (align-planes-left ?align-planes-left)
                         (align-planes-right ?align-planes-right)
                         (precise-tracking ?precise-tracking)
-                        (object-name ?handle-link)))
+                        (object-name ?handle-link)
+                        (context "grasping")))
     
   (exe:perform (desig:a motion
                         (type gripper-motion)
@@ -358,7 +376,8 @@
                           (collision-mode ?collision-mode)
                           (goal-pose ?pour-pose)
                           (object-size ?object-size)
-                          (object-name ?target-name)))
+                          (object-name ?target-name)
+                          (context "pouring")))
 
     (exe:perform (desig:a motion
                           (type tilting)

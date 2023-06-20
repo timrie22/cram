@@ -170,8 +170,10 @@
                                               ?precise-tracking
                                               ?goal-pose
                                               ?object-size
+                                              ?object-shape
                                               ?object-name
                                               ?from-above
+                                              ?context
                                               ))
     (property ?designator (:type :reaching))
     (once (or (property ?designator (:left-pose ?left-pose))
@@ -203,10 +205,14 @@
               (equal ?goal-pose nil)))
     (once (or (desig:desig-prop ?designator (:object-size ?object-size))
               (equal ?object-size nil)))
+    (once (or (desig:desig-prop ?designator (:object-shape ?object-shape))
+              (equal ?object-shape nil)))
     (once (or (desig:desig-prop ?designator (:object-name ?object-name))
               (equal ?object-name nil)))
     (once (or (desig:desig-prop ?designator (:from-above ?from-above))
-              (equal ?from-above nil))))
+              (equal ?from-above nil)))
+    (once (or (desig:desig-prop ?designator (:context ?context))
+              (equal ?context nil))))
 
 
   (<- (motion-grounding ?designator (lift ?left-pose ?right-pose

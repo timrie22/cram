@@ -42,7 +42,7 @@
 
 
 ;;@author Luca Krohm
-(defun make-reach-constraint (goal-pose object-name object-size from-above
+(defun make-reach-constraint (goal-pose object-name object-size object-shape from-above context
                               &key avoid-collisions-not-much)
   "Receives parameters used by manipulation. Creates Constraint of the type Reach which is a classname inside the manipulation code, which is responsible for 'reaching'"
   (roslisp:make-message
@@ -62,10 +62,14 @@
           `(("object_size"
            . (("message_type" . "geometry_msgs/Vector3")
               ("message" . ,(giskard::to-hash-table object-size))))))
-      
+      ,@(when object-shape
+          `(("object_shape"
+             . ,object-shape)))
       ,@(when from-above
           `(("from-above"
              . ,from-above)))
+      ("context"
+       . ,context)
       
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
@@ -243,12 +247,14 @@
                                          object-name
                                          action-type
                                          object-size
+                                         object-shape
                                          object-height
                                          tip-link
                                          goal-pose
                                          tilt-direction
                                          tilt-angle
-                                         from-above)
+                                         from-above
+                                         context)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type (or null string) pose-base-frame)
            (type boolean prefer-base straight-line
@@ -334,7 +340,7 @@
                    ;;;;
                    ;; Constraints for motions
                    (when (eq action-type 'reach)
-                     (make-reach-constraint goal-pose "object_name" object-size from-above))
+                     (make-reach-constraint goal-pose "object_name" object-size object-shape from-above context))
                    (when (eq action-type 'lift)
                      (make-lift-constraint "object_name" ))
                    (when (eq action-type 'retract)
@@ -524,12 +530,14 @@
                                     action-type
                                     object-size
                                     object-name
+                                    object-shape
                                     object-height
                                     tip-link
                                     goal-pose
                                     tilt-direction
                                     tilt-angle
-                                    from-above)
+                                    from-above
+                                    context)
   (declare (type (or number null) action-timeout)
            (type (or cl-transforms-stamped:pose-stamped null)
                  goal-pose-left goal-pose-right)
@@ -576,12 +584,14 @@
                  :action-type action-type
                  :object-size object-size
                  :object-name object-name
+                 :object-shape object-shape
                  :object-height object-height
                  :tip-link tip-link
                  :goal-pose goal-pose
                  :tilt-direction tilt-direction
                  :tilt-angle tilt-angle
-                 :from-above from-above)
+                 :from-above from-above
+                 :context context)
    :action-timeout action-timeout
    ;; :check-goal-function (lambda (result status)
    ;;                        (declare (ignore result status))

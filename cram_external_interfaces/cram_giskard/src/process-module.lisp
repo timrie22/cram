@@ -110,8 +110,10 @@
         :precise-tracking (nth 10 rest-args); that's eleventh element
         :goal-pose (nth 11 rest-args)
         :object-size (nth 12 rest-args)
-        :object-name (nth 13 rest-args)
-        :from-above (nth 14 rest-args)
+        :object-shape (nth 13 rest-args)
+        :object-name (nth 14 rest-args)
+        :from-above (nth 15 rest-args)
+        :context (nth 16 rest-args)
         :action-type 'reach
         ))
       (cram-common-designators:lift
