@@ -19,18 +19,22 @@
         (handle-link "iai_kitchen/shelf:shelf:shelf_door_left:handle")
         (all-designator (desig:all object (type :everything))))
 
-
-
+    
+    ;;Resets all Knowledge data.
+    (with-knowledge-result ()
+        `("reset_user_data")
+      (print "Storing groceries plan reset."))
+    
+    
     ;;Init query for Knowledge.
     (with-knowledge-result ()
         `("init_storing_groceries")
       (print "Storing groceries plan started."))
+
   
     (park-robot)
 
    
-
-
     (cond ((equal skip-open-shelf NIL)
 
            ;;Move to the shelf to a perceive pose.
@@ -64,7 +68,7 @@
          
          ;;Move to the shelf.
          (with-knowledge-result (result)
-             `(and ("has_urdf_name" object shelf)
+             `(and ("has_urdf_name" object ,shelf)
                    ("object_rel_pose" object "perceive" result))
            (move-hsr (make-pose-stamped-from-knowledge-result result)))
          
@@ -76,6 +80,7 @@
 
     
            (park-robot)
+           (break)
            
            (print ?object-desig-list-shelf)))
         ((equal skip-shelf-perception T)
@@ -89,7 +94,7 @@
               ("object_rel_pose" object "perceive" result))
       (move-hsr (make-pose-stamped-from-knowledge-result result)))
 
-    ;;(perc-robot)
+    (perc-robot)
 
     ;;Perceive the objects on the table. Put all objects into a list. 
     (let* ((?source-object-desig all-designator)
@@ -100,6 +105,7 @@
         
 
 ;;=======================================MAIN=LOOP========================================================================
+      
       (let* ((?place-poses (get-hardcoded-place-poses)))
   
         ;;Perform this loop max-objects amount of times.
@@ -112,7 +118,7 @@
           ;;TODO - Extract: Object size, object height, place pose.
           ;;TODO - Next Object might not work like this, otherwise random order + extract object name.
           
-            (let*  ((?collision-mode collision-mode)
+          (let*  ((?collision-mode collision-mode)
                   ;;HARDCODED
                   (?object-size (cl-tf2::make-3d-vector 0.06 0.145 0.215));;(extract-size ?current-object))
                   (?object-height 0.23)
@@ -129,7 +135,7 @@
             ;;Pick up the object.
             (exe:perform (desig:an action
                                    (type :picking-up)
-                                   (object-pose ?next-pick-up-pose)
+                                   (goal-pose ?next-pick-up-pose)
                                    (object-size ?object-size)
                                    (collision-mode ?collision-mode)))
            
@@ -145,11 +151,14 @@
             ;;Places the object currently held.
             (exe:perform (desig:an action
                                    (type :placing)
-                                   (target-pose ?place-pose)
+                                   (goal-pose ?place-pose)
                                    (object-height ?object-height)
-                                   (frontal-placing T)
+                                   (from-above NIL)
                                    (neatly T)
                                    (collision-mode ?collision-mode)))
+
+            ;;Update the location of the Object in Knowledge.
+            ;;(update-object-pose ?next-object ?next-place-pose)
 
             
             (park-robot)
@@ -181,12 +190,12 @@
 
 ;;@author Felix Krause
 ;;doesnt work for now
-;; (defun extract-size (object)
-;;   (roslisp:with-fields 
-;;       ((?size
-;;         (cram-designators::size cram-designators:description))) 
-;;       object    
-;;     ?size))
+(defun extract-size (object)
+  (roslisp:with-fields 
+      ((?size
+        (cram-designators::size cram-designators:description))) 
+      object    
+    ?size))
 
 
 ;;@author Felix Krause
@@ -221,6 +230,12 @@
       `("object_pose" ,object result)
     (make-pose-stamped-from-knowledge-result result)))
 
+;;@author Felix Krause
+(defun update-object-pose (object pose)
+  (with-knowledge-result ()
+      `("object_pose" ,object ,(reformat-stamped-pose-for-knowledge pose))
+    (print "Object Pose updated !")))
+
 
 ;;@author Felix Krause
 (defun get-hardcoded-place-poses ()
@@ -229,6 +244,12 @@
     (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.95 2.55 0.48) (cl-tf:make-quaternion 0 0 0 1))
     (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 2.1 2.55 0.48) (cl-tf:make-quaternion 0 0 0 1))
     (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.9 2.55 0.48) (cl-tf:make-quaternion 0 0 0 1))))
+
+
+
+
+
+
 
 ;;@author Felix Krause
 (defun test-place ()

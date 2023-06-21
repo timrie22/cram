@@ -260,7 +260,7 @@
 (defun simple-knowledge (query &optional (package *package*))
   (print package)
   (with-safe-prolog
-    (json-prolog:prolog query :package package)))
+    (json-prolog:prolog-1 query :package package)))
 
 ;;@author Felix Krause
 (defun make-pose-stamped-from-knowledge-result (result)
