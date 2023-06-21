@@ -75,6 +75,7 @@
              (:file "setup" :depends-on ("package"))
              (:file "setup-urdf" :depends-on ("package"))
              (:file "cleanup-demo" :depends-on ("package"))
+             (:file "carry-my-luggage" :depends-on ("package" "utilities"))
              (:file "storing-groceries-demo" :depends-on ("package"))
              (:file "set-the-table-demo" :depends-on ("package"))
              (:file "serve-breakfast-demo" :depends-on ("package" "utilities"))

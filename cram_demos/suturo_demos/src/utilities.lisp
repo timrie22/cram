@@ -526,3 +526,53 @@
      (* (fround v 10^-n)
                10^-n)))
 
+
+;;;;;;;;;;;;
+;; VANESSA ---------------------------------------------------------------------
+
+
+
+(defun human-assist (talk-string talk found-plate found-cup)
+  (talk-request talk-string talk)
+  (cpl:seq
+    (call-take-pose-action 0 0 0 0 0 -1.5 -1.5 1.6))
+  (exe:perform (desig:a motion
+                        (type gripper-motion)
+                        (:open-close :open)
+                        (effort 0.1)))
+  ;;todo what if we dont find the plate?
+  (if found-plate
+      (call-text-to-speech-action "Please give me the plate!
+When you are ready poke the white part of my hand.")
+      (call-text-to-speech-action "Please give me the object,
+When you are ready poke the white part of my hand."))
+    (exe:perform
+     (desig:an action
+               (type monitoring-joint-state)
+               (joint-name "wrist_flex_joint")))
+  (call-text-to-speech-action "Closing the Gripper, Thank you")
+  (exe:perform (desig:a motion
+                        (type gripper-motion)
+                        (:open-close :close)
+                        (effort 0.1))))
+
+
+(defun talk-request (talk-string talk-yn)
+  (when talk-yn
+    (call-text-to-speech-action talk-string)))
+
+
+(defun extract-percept-msg-obj-type-to-string (?list-of-objects)
+  ;;to-do if u found 2 of the same maybe delee and say 2?
+  (mapcar (lambda (percept-object)
+            (roslisp:with-fields
+                ((description
+                  (cram-designators:description)))
+                percept-object
+              (cl::write-to-string
+               (second
+                (second description)))))
+          ?list-of-objects))
+
+;;;;;;;;;;;;
+;; VANESSA -----------------------------------------------------------------END
