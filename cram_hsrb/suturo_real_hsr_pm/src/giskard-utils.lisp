@@ -67,6 +67,8 @@
         ))))
 
 (defmethod coe:on-event giskard-perceived ((event cpoe:object-perceived-event-knowrob))
+  (print event)
+  ;;(break)
   (unless cram-projection:*projection-environment*
     (roslisp:with-fields ((frame (cl-transforms-stamped:frame-id cram-designators::pose cram-designators:data))
                           (w0 (w cl-transforms:orientation cram-designators::pose cram-designators:data))
@@ -77,11 +79,14 @@
                           (y (y cl-transforms:origin cram-designators::pose cram-designators:data))
                           (z (z cl-transforms:origin cram-designators::pose cram-designators:data))
                           (description (cram-designators:description))
-                          (radius (robokudo_msgs-msg::radius cram-designators::objectsize cram-designators:data))
-                          (x-size (x_size robokudo_msgs-msg::dimensions cram-designators::objectsize cram-designators:data))
-                          (y-size (y_size robokudo_msgs-msg::dimensions cram-designators::objectsize cram-designators:data))
-                          (z-size (z_size robokudo_msgs-msg::dimensions cram-designators::objectsize cram-designators:data)))
+                          (shape (cram-designators::shape-size cram-designators:data))
+                         )
         (cpoe:event-object-designator event)
+      (roslisp:with-fields ((radius (radius))
+                            (x-size (x robokudo_msgs-msg::dimensions))
+                            (y-size (y robokudo_msgs-msg::dimensions))
+                            (z-size (z robokudo_msgs-msg::dimensions)))
+          (svref shape 0)
       (su-demos::with-knowledge-result (name)
           `("create_object" name ,(su-demos::transform-key-to-string (second (second description)))  ;;TODO Extract keyword
                             (list ,frame
@@ -96,7 +101,7 @@
         (print name)
         ;; (add-object-to-collision-scene-knowrob
         ;;  name)
-        ))))
+        )))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;; KNOWROB UTILS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

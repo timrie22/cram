@@ -54,7 +54,7 @@
            (let ((key-val-pair (find key key-value-pairs-list :key #'car)))
              (if key-val-pair
                  (let ((value (second key-val-pair)))
-                   (if (eq atom-or-list :atom)
+                   (if (eq atom-or-list :atom) 
                        (if (listp value)
                            (car value)
                            value)
@@ -93,7 +93,7 @@
                                  (eql key :color)
                                  (eql key :location)
                                  (eql key :size)
-                                 (eql key :objectsize)
+                                 (eql key :shape_size)
                                  (eql key :material))
                              (list key
                                    (etypecase value
@@ -157,10 +157,10 @@
       (:color ,(map 'list #'to-keyword (roslisp:msg-slot-value message :color)))
       (:size ,(to-keyword (roslisp:msg-slot-value message :size)))
       ;;(:dimension ,(to-keyword (roslisp:msg-slot-value message :dimension)))
-      (:objectsize ,(roslisp:msg-slot-value message :objectsize))
+      (:shape_size ,(roslisp:msg-slot-value message :shape_size))
       (:location ,(to-keyword (roslisp:msg-slot-value message :location)))
       (:pose ,(map 'list #'cl-transforms-stamped:from-msg (roslisp:msg-slot-value message :pose)))
-      (:posesource ,(map 'list #'to-keyword (roslisp:msg-slot-value message :posesource))))))
+      (:posesource ,(map 'list #'to-keyword (roslisp:msg-slot-value message :pose_source))))))
 
 (defun ensure-robokudo-result (result quantifier status)
   (when (or (eql status :preempted) (eql status :aborted) (not result))
@@ -211,6 +211,7 @@
 
 (defun which-estimator-for-object (object-description)
   :CLUSTERPOSEBBANNOTATOR
+  ;;:V4RPOSEANNOTATOR
   ;;:CLUSTERPOSITIONANNOTATOR
   ;;:ICPPOSEREFINEMENTANNOTATOR
   ;; (let ((type (second (find :type object-description :key #'car)))
@@ -471,8 +472,8 @@
                            :description "Robokudo object didn't have a NAME")))
            (size
              (second (find :size combined-properties :key #'car)))
-           (objectsize
-             (second (find :objectsize combined-properties :key #'car)))
+           (shapesize
+             (second (find :shape_size combined-properties :key #'car)))
 
            (color
              (let ((rs-colors (assoc :color combined-properties
@@ -486,8 +487,8 @@
 
       (let* ((pose-stamped-in-whatever
                (find-pose-in-object-designator combined-properties))
-             ;; (pose-stamped-in-map-frame
-             (pose-stamped-in-map-frame-original-orientation
+             (pose-stamped-in-map-frame
+             ;; (pose-stamped-in-map-frame-original-orientation
                (if cram-tf:*fixed-frame*
                    (cram-tf:ensure-pose-in-frame
                     pose-stamped-in-whatever
@@ -495,18 +496,18 @@
                     ;; :use-current-ros-time t
                     :transformer *robokudo-tf-buffer-client*)
                    pose-stamped-in-whatever))
-             (pose-stamped-in-map-frame
-               (cl-transforms-stamped:copy-pose-stamped
-                pose-stamped-in-map-frame-original-orientation
-                :orientation
-                ;; HACK
-                (if (< (cl-transforms:y
-                        (cl-transforms:origin
-                         pose-stamped-in-map-frame-original-orientation))
-                       1.9)
-                    ;; (cl-transforms:make-quaternion 1 0 0 0)
-                    (cl-transforms:make-quaternion 0 0 0 1)
-                    (cl-transforms:make-quaternion 0 0 1 0))))
+             ;; (pose-stamped-in-map-frame
+             ;;   (cl-transforms-stamped:copy-pose-stamped
+             ;;    pose-stamped-in-map-frame-original-orientation
+             ;;    :orientation
+             ;;    ;; HACK
+             ;;    (if (< (cl-transforms:y
+             ;;            (cl-transforms:origin
+             ;;             pose-stamped-in-map-frame-original-orientation))
+             ;;           1.9)
+             ;;        ;; (cl-transforms:make-quaternion 1 0 0 0)
+             ;;        (cl-transforms:make-quaternion 0 0 0 1)
+             ;;        (cl-transforms:make-quaternion 0 0 1 0))))
              (transform-stamped-in-map-frame
                (cram-tf:pose-stamped->transform-stamped
                 pose-stamped-in-map-frame
@@ -546,7 +547,7 @@
                     :pose pose-stamped-in-map-frame
                     :color color
                     :size size
-                    :objectsize objectsize
+                    :shape_size shapesize
                     ))
 
             output-designator))))))

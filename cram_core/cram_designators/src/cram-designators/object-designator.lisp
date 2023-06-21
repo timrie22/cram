@@ -35,7 +35,7 @@
                       :initform (gensym "OBJECT-"))
    (color :reader object-color :initarg :color)
    (size :reader object-size :initarg :size)
-   (objectsize :reader objectsize :initarg :objectsize)) ;;Size added here/not standard
+   (shape-size :reader shape-size :initarg :shape_size)) ;;Size added here/not standard
   (:documentation "Base class for all objects that are bound to an
   object designator's data slot. The minimum data that needs to be
   provided is the pose of the object and an identifier for the
