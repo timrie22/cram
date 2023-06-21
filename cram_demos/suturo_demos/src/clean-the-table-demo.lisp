@@ -5,55 +5,124 @@
 ;; Perceives and picks up items from a table and places them inside a diswasher object in the urdf file.
 ;; Thereafter, it places the dishwasher tab inside as well.
 ;;
-(defun clean-the-table-demo ()
+(defun clean-the-table-demo (&key (step 0) (talk T))
 
   ;; Initialize all variables, destionation poses are hardcoded for now.
   (let ((table "left_table:table:table_front_edge_center")
-  ;;       (dishwasher "imaginary_dishwasher:dishwasher_tray_2_bottom")
-  ;;       (?object-height-cutlery 0.23d0)
-  ;;       (?object-height 0.25d0)
-  ;;       (?spoon-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.3 1.64 0.22) (cl-tf:make-quaternion 0 0 0 1)))
-  ;;       (?fork-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.32 1.64 0.22) (cl-tf:make-quaternion 0 0 0 1)))
-  ;;       (?knife-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.34 1.64 0.22) (cl-tf:make-quaternion 0 0 0 1)))
-  ;;       (?plate-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.2 1.35 0.22) (cl-tf:make-quaternion 0 0 0 1)))
-  ;;       (?mug-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.3 1.33 0.22) (cl-tf:make-quaternion 0 0 0 1)))
-  ;;       (?bowl-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.2 1.51 0.22) (cl-tf:make-quaternion 0 0 0 1)))
-  ;;       (?tab-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.33 1.4 0.22) (cl-tf:make-quaternion 0 0 0 1))))
-  )
-  ;;   ;; Puts the HSR into its default pose.
-     ;;(park-robot)
+        ;;       (dishwasher "imaginary_dishwasher:dishwasher_tray_2_bottom")
+        ;;       (?object-height-cutlery 0.23d0)
+        ;;       (?object-height 0.25d0)
+        ;;       (?spoon-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.3 1.64 0.22) (cl-tf:make-quaternion 0 0 0 1)))
+        ;;       (?fork-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.32 1.64 0.22) (cl-tf:make-quaternion 0 0 0 1)))
+        ;;       (?knife-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.34 1.64 0.22) (cl-tf:make-quaternion 0 0 0 1)))
+        ;;       (?plate-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.2 1.35 0.22) (cl-tf:make-quaternion 0 0 0 1)))
+        ;;       (?mug-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.3 1.33 0.22) (cl-tf:make-quaternion 0 0 0 1)))
+        ;;       (?bowl-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.2 1.51 0.22) (cl-tf:make-quaternion 0 0 0 1)))
+        ;;       (?tab-pose (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.33 1.4 0.22) (cl-tf:make-quaternion 0 0 0 1))))
+        ;;empty list will be filled with objects
+        (list-of-objects-found (list ))
+        ;;special cases cause vanessa is to lazy to use knowledge
+        (found-plate nil)
+        (found-cup nil))
+    ;;   ;; Puts the HSR into its default pose.
+    (when (<= step 0)
+      (talk-request "Hey, I am Toya i will now clean up the table" talk)
+      (talk-request "I will now drive to the Table" talk)
+      (park-robot)
 
-    ;;   ;; Move to table to perceive objects.
-    ;;todo this pose is still bad
-     ;;(urdf-move-to table)
+      ;; Move to table to perceive objects.
+      (urdf-move-to table)
 
-  ;;   ;; Puts the HSR into a pose which is suited to perceive objects.
-  ;;   (perc-robot)
+      ;; Puts the HSR into a pose which is suited to perceive objects.
+      (perc-robot))
+    
+    (when (<= step 1)
+      (talk-request "I am now perceiving" talk)
+      ;; Perceives the objects on the table, saves them in a list.
+      (let* ((?source-object-desig (desig:all object (type :everything)))
+             (?list-of-objects
+               (exe:perform (desig:all action
+                                       (type detecting)
+                                       (object ?source-object-desig)))))
+        ;;extracting the msg to objects-types and makes a list out of it
+        (setf list-of-objects-found
+              (extract-percept-msg-obj-type-to-string ?list-of-objects)))
+      
+      (talk-request  "I found the following items: " talk)
+      
+      ;;loop over the list of items, setf if special case like plate or cup appears
+      (mapcar (lambda (object)
+                (progn
+                  (talk-request object talk)
+                  (when (search "PLATE" object)
+                    (setf found-plate t))
+                  (when (search "CUP" object)
+                    (setf found-plate t))))
+              list-of-objects-found))
+    
+    (when (<= step 2)
+      ;;human assist first time, will call for plate if found
+      (human-assist "I will need some help from the human,i will now move my arm, please be care: "
+                    talk found-plate found-cup)
+      ;;put stuff on plate please human
+      (when found-plate
+        (talk-request  "Now i have a special request: Please put all the small items safely on the plate. When you are done poke the white part of my hand." talk)
+        ;;monitoring to know when human is done
+        ;;TO-DO: change the joint?
+        (exe:perform
+         (desig:an action
+                   (type monitoring-joint-state)
+                   (joint-name "wrist_flex_joint")))))
+    
+    (when (<= step 3))
+    ;;move to tray
+    ;;place
+    ;;repeat step 0 (perceive....)
+    ;;end
+    ))
 
-  ;; Perceives the objects on the table, saves them in a list.
-  (let* ((?source-object-desig (desig:all object (type :everything)))
-         
-         (?list-of-objects
-           (exe:perform (desig:all action
-                                   (type detecting)
-                                   (object ?source-object-desig))))
-        ) 
- 
-    )))
+
+(defun human-assist (talk-string talk found-plate found-cup)
+  (talk-request talk-string talk)
+  (cpl:seq
+    (call-take-pose-action 0 0 0 0 0 -1.5 -1.5 1.6))
+  (exe:perform (desig:a motion
+                        (type gripper-motion)
+                        (:open-close :open)
+                        (effort 0.1)))
+  ;;todo what if we dont find the plate?
+  (if found-plate
+      (call-text-to-speech-action "Please give me the plate!
+When you are ready poke the white part of my hand.")
+      (call-text-to-speech-action "Please give me the object,
+When you are ready poke the white part of my hand."))
+    (exe:perform
+     (desig:an action
+               (type monitoring-joint-state)
+               (joint-name "wrist_flex_joint")))
+  (call-text-to-speech-action "Closing the Gripper, Thank you")
+  (exe:perform (desig:a motion
+                        (type gripper-motion)
+                        (:open-close :close)
+                        (effort 0.1)))))
 
 
+(defun talk-request (talk-string talk-yn)
+  (when talk-yn
+    (call-text-to-speech-action talk-string)))
 
 
 (defun extract-percept-msg-obj-type-to-string (?list-of-objects)
-   (mapcar (lambda (percept-object)
-                     (roslisp:with-fields
-                         ((description
-                           (cram-designators:description)))
-                         percept-object
-                       (cl::write-to-string
-                        (second
-                         (second description)))))
-                   ?list-of-objects))
+  ;;to-do if u found 2 of the same maybe delee and say 2?
+  (mapcar (lambda (percept-object)
+            (roslisp:with-fields
+                ((description
+                  (cram-designators:description)))
+                percept-object
+              (cl::write-to-string
+               (second
+                (second description)))))
+          ?list-of-objects))
 
 
 
