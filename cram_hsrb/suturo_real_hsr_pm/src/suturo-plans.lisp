@@ -53,7 +53,9 @@
                  (setf ?goal-pose ?pose)))
              (cpl:retry))))
       
-      (let ((?object-height (cl-transforms:z ?object-size)))
+      (let ((?object-height (cl-transforms:z ?object-size))
+            (?context `(("action" . "grasping")
+                        ("from_above" . ,?from-above))))
         (exe:perform (desig:a motion
                               (type aligning-height)
                               (collision-mode ?collision-mode)
@@ -67,7 +69,7 @@
                               (align-planes-right ?align-planes-right)
                               (precise-tracking ?precise-tracking)
                               (goal-pose ?goal-pose)
-                              (from-above ?from-above)
+                              (context ?context)
                               (object-height ?object-height)
                               (object-name ?object-name)))
       
@@ -76,7 +78,7 @@
                               (:open-close :open)
                               (effort 0.1)))
         (let ((?context `(("action" . "grasping")
-                          ("object_shape" . ,?object-shape))))
+                          ("from_above" . ,?from-above))))
           
           (exe:perform (desig:a motion
                                 (type reaching)
@@ -85,7 +87,6 @@
                                 (object-size ?object-size)
                                 (object-shape ?object-shape)
                                 (object-name ?object-name)
-                                (from-above ?from-above)
                                 (context ?context))))
         
         (cpl:pursue
@@ -159,7 +160,9 @@
   (declare (type boolean ?move-base ?prefer-base ?straight-line ?precise-tracking
                  ?align-planes-left ?align-planes-right))
 
-  (let ((?object-height (cl-transforms:z ?object-size)))
+  (let ((?object-height (cl-transforms:z ?object-size))
+        (?context `(("action" . "placing")
+                    ("from_above" . ,?from-above))))
     (exe:perform (desig:a motion
                           (type aligning-height)
                           (collision-mode ?collision-mode)
@@ -174,35 +177,21 @@
                           (precise-tracking ?precise-tracking)
                           (goal-pose ?goal-pose)
                           (object-height ?object-height)
-                          (from-above ?from-above))))
-
-  (exe:perform (desig:a motion
+                          (context ?context))))
+  
+  (let ((?context `(("action" . "placing")
+                    ("from_above" . ,?from-above))))
+    (exe:perform (desig:a motion
                         (type reaching)
                         (collision-mode ?collision-mode)
                         (goal-pose ?goal-pose)
                         (object-size ?object-size)
                         (from-above ?from-above)
-                        (context "placing")))
-
-  ;; (exe:perform (desig:a motion
-  ;;                       (type placing)
-  ;;                       (collision-mode ?collision-mode)
-  ;;                       (collision-object-b ?collision-object-b)
-  ;;                       (collision-object-b-link ?collision-object-b-link)
-  ;;                       (collision-object-a ?collision-object-a)
-  ;;                       (allow-base ?move-base)
-  ;;                       (prefer-base ?prefer-base)
-  ;;                       (straight-line ?straight-line)
-  ;;                       (align-planes-left ?align-planes-left)
-  ;;                       (align-planes-right ?align-planes-right)
-  ;;                       (precise-tracking ?precise-tracking)
-  ;;                       (goal-pose ?goal-pose)
-  ;;                       (object-height ?object-height)
-  ;;                       (from-above ?from-above)))
+                        (context ?context))))
 
   (when ?neatly
     (exe:perform (desig:a motion
-                          (type placing-neatly)
+                          (type placing)
                           (collision-mode ?collision-mode)
                           (collision-object-b ?collision-object-b)
                           (collision-object-b-link ?collision-object-b-link)
@@ -258,21 +247,22 @@
                         (type gripper-motion)
                         (:open-close :open)
                         (effort 0.1)))
-    
-  (exe:perform (desig:a motion
-                        (type reaching)
-                        (collision-mode ?collision-mode)
-                        (collision-object-b ?collision-object-b)
-                        (collision-object-b-link ?collision-object-b-link)
-                        (collision-object-a ?collision-object-a)
-                        (allow-base ?move-base)
-                        (prefer-base ?prefer-base)
-                        (straight-line ?straight-line)
-                        (align-planes-left ?align-planes-left)
-                        (align-planes-right ?align-planes-right)
-                        (precise-tracking ?precise-tracking)
-                        (object-name ?handle-link)
-                        (context "grasping")))
+
+  (let ((?context `(("action" . "grasping"))))
+    (exe:perform (desig:a motion
+                          (type reaching)
+                          (collision-mode ?collision-mode)
+                          (collision-object-b ?collision-object-b)
+                          (collision-object-b-link ?collision-object-b-link)
+                          (collision-object-a ?collision-object-a)
+                          (allow-base ?move-base)
+                          (prefer-base ?prefer-base)
+                          (straight-line ?straight-line)
+                          (align-planes-left ?align-planes-left)
+                          (align-planes-right ?align-planes-right)
+                          (precise-tracking ?precise-tracking)
+                          (object-name ?handle-link)
+                          (context ?context))))
     
   (exe:perform (desig:a motion
                         (type gripper-motion)
@@ -363,21 +353,23 @@
                        "map" 0
                        ?pour-pose-transform)))
 
-    (let ((?height 0.2215))
+    (let ((?height 0.2215)
+          (?context `(("action" . "pouring"))))
       (exe:perform (desig:a motion
                             (type aligning-height)
                             (collision-mode ?collision-mode)
                             (goal-pose ?pour-pose)
                             (object-height ?height)
                             (object-name ?target-name))))
-    
-    (exe:perform (desig:a motion
-                          (type reaching)
-                          (collision-mode ?collision-mode)
-                          (goal-pose ?pour-pose)
-                          (object-size ?object-size)
-                          (object-name ?target-name)
-                          (context "pouring")))
+
+    (let ((?context `(("action" . "pouring"))))
+      (exe:perform (desig:a motion
+                            (type reaching)
+                            (collision-mode ?collision-mode)
+                            (goal-pose ?pour-pose)
+                            (object-size ?object-size)
+                            (object-name ?target-name)
+                            (context ?context))))
 
     (exe:perform (desig:a motion
                           (type tilting)

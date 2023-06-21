@@ -42,7 +42,7 @@
 
 
 ;;@author Luca Krohm
-(defun make-reach-constraint (goal-pose object-name object-size object-shape from-above context
+(defun make-reach-constraint (goal-pose object-name object-size object-shape context
                               &key avoid-collisions-not-much)
   "Receives parameters used by manipulation. Creates Constraint of the type Reach which is a classname inside the manipulation code, which is responsible for 'reaching'"
   (roslisp:make-message
@@ -65,9 +65,6 @@
       ,@(when object-shape
           `(("object_shape"
              . ,object-shape)))
-      ,@(when from-above
-          `(("from-above"
-             . ,from-above)))
       ("context"
        . ,context)
       
@@ -124,7 +121,7 @@
                             'giskard_msgs-msg:constraint
                             :weight_below_ca)))))))))
 
-(defun make-align-height-constraint (object-name goal-pose object-height from-above
+(defun make-align-height-constraint (object-name goal-pose object-height context
                                      &key avoid-collisions-not-much)
   "Receives parameters used by manipulation. Creates Constraint of the type PreparePlacing which is a classname inside the manipulation code, which is responsible for 'preparing-placing'"
   (roslisp:make-message
@@ -140,9 +137,8 @@
       ,@(when object-height
           `(("object_height"
              . ,object-height)))
-      ,@(when from-above
-          `(("from_above"
-             . ,from-above)))
+      ("context"
+       . ,context)
       ,@(when object-name
           `(("object_name"
              . ,object-name)))
@@ -155,53 +151,20 @@
                             'giskard_msgs-msg:constraint
                             :weight_below_ca)))))))))
 
-(defun make-place-constraint (goal-pose object-name object-height from-above
+(defun make-place-constraint (goal-pose context
                                      &key avoid-collisions-not-much)
   "Receives parameters used by manipulation. Creates Constraint of the type PlaceObject which is a classname inside the manipulation code, which is responsible for 'placing'"
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
-   "PlaceObject"
+   "Placing"
    :parameter_value_pair
    (giskard::alist->json-string
     `(("goal_pose"
        . (("message_type" . "geometry_msgs/PoseStamped")
           ("message" . ,(giskard::to-hash-table goal-pose))))
-      ,@(when object-name
-          `(("object_name"
-             . ,object-name)))
-      ("object_height"
-       . ,object-height)
-      ;; ("radius"
-      ;;  . 0.06)
-      ,@(when from-above
-          `(("from_above"
-             . ,from-above)))
-      
-      ,@(if avoid-collisions-not-much
-            `(("weight" . ,(roslisp-msg-protocol:symbol-code
-                           'giskard_msgs-msg:constraint
-                           :weight_above_ca))
-              (("weight" . (roslisp-msg-protocol:symbol-code
-                            'giskard_msgs-msg:constraint
-                            :weight_below_ca)))))))))
-
-(defun make-place-neatly-constraint (goal-pose from-above
-                                     &key avoid-collisions-not-much)
-  "Receives parameters used by manipulation. Creates Constraint of the type PlaceObject which is a classname inside the manipulation code, which is responsible for 'placing'"
-  (roslisp:make-message
-   'giskard_msgs-msg:constraint
-   :type
-   "PlaceNeatly"
-   :parameter_value_pair
-   (giskard::alist->json-string
-    `(("goal_pose"
-       . (("message_type" . "geometry_msgs/PoseStamped")
-          ("message" . ,(giskard::to-hash-table goal-pose))))
-      ,@(when from-above
-          `(("from_above"
-             . ,from-above)))
-      
+      ("context"
+       . ,context)      
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
                            'giskard_msgs-msg:constraint
@@ -253,7 +216,6 @@
                                          goal-pose
                                          tilt-direction
                                          tilt-angle
-                                         from-above
                                          context)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type (or null string) pose-base-frame)
@@ -340,17 +302,15 @@
                    ;;;;
                    ;; Constraints for motions
                    (when (eq action-type 'reach)
-                     (make-reach-constraint goal-pose "object_name" object-size object-shape from-above context))
+                     (make-reach-constraint goal-pose "object_name" object-size object-shape context))
                    (when (eq action-type 'lift)
                      (make-lift-constraint "object_name" ))
                    (when (eq action-type 'retract)
                       (make-retract-constraint "object_name" tip-link))
                    (when (eq action-type 'align-height)
-                     (make-align-height-constraint "object_name" goal-pose object-height from-above))
+                     (make-align-height-constraint "object_name" goal-pose object-height context))
                    (when (eq action-type 'place)
-                     (make-place-constraint goal-pose "object_name" object-height from-above))
-                   (when (eq action-type 'place-neatly)
-                     (make-place-neatly-constraint goal-pose from-above))
+                     (make-place-constraint goal-pose context))
                    (when (eq action-type 'tilt)
                      (make-tilt-constraint tilt-direction tilt-angle))
                    ;;;;
@@ -536,7 +496,6 @@
                                     goal-pose
                                     tilt-direction
                                     tilt-angle
-                                    from-above
                                     context)
   (declare (type (or number null) action-timeout)
            (type (or cl-transforms-stamped:pose-stamped null)
@@ -590,7 +549,6 @@
                  :goal-pose goal-pose
                  :tilt-direction tilt-direction
                  :tilt-angle tilt-angle
-                 :from-above from-above
                  :context context)
    :action-timeout action-timeout
    ;; :check-goal-function (lambda (result status)

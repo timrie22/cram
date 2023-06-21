@@ -40,6 +40,11 @@
 (defun serve-breakfast-demo()
   ;;(call-text-to-speech-action "Starting demo")
 
+  ;;Resets all Knowledge data.
+  (with-knowledge-result ()
+      `("reset_user_data")
+    (print "Serving Breakfast plan reset."))
+  
   (with-knowledge-result ()
         `("init_serve_breakfast")
       (print "Serving Breakfast plan started."))
