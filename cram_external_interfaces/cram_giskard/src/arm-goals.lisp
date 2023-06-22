@@ -173,6 +173,68 @@
                             'giskard_msgs-msg:constraint
                             :weight_below_ca)))))))))
 
+(defun make-sequence-constraint (motion-sequence
+                                     &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type PlaceObject which is a classname inside the manipulation code, which is responsible for 'placing'"
+  (print motion-sequence)
+  ;;(break)
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "SequenceGoal"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(("motion_sequence"
+       . ,motion-sequence)
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
+(defun make-take-pose-constraint (pose-keyword head-pan head-tilt arm-lift arm-flex arm-roll wrist-flex wrist-roll
+                                     &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type PlaceObject which is a classname inside the manipulation code, which is responsible for 'placing'"
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "TakePose"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(,@(when pose-keyword
+          `(("pose_keyword"
+             . ,pose-keyword)))
+      ,@(when head-pan
+          `(("head_pan_joint"
+             . ,head-pan)))
+      ,@(when head-tilt
+          `(("head_tilt_joint"
+             . ,head-tilt)))
+      ,@(when arm-lift
+          `(("arm_lift_joint"
+             . ,arm-lift)))
+      ,@(when arm-flex
+          `(("arm_flex_joint"
+             . ,arm-flex)))
+      ,@(when arm-roll
+          `(("arm_roll_joint"
+             . ,arm-roll)))
+      ,@(when wrist-flex
+          `(("wrist_flex_joint"
+             . ,wrist-flex)))
+      ,@(when wrist-roll
+          `(("wrist_roll_joint"
+             . ,wrist-roll)))
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
 (defun make-tilt-constraint (tilt-direction tilt-angle
                                      &key avoid-collisions-not-much)
   "Receives parameters used by manipulation. Creates Constraint of the type PlaceObject which is a classname inside the manipulation code, which is responsible for 'placing'"
@@ -216,7 +278,16 @@
                                          goal-pose
                                          tilt-direction
                                          tilt-angle
-                                         context)
+                                         context
+                                         motion-sequence
+                                         pose-keyword
+                                         head-pan
+                                         head-tilt
+                                         arm-lift
+                                         arm-flex
+                                         arm-roll
+                                         wrist-flex
+                                         wrist-roll)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type (or null string) pose-base-frame)
            (type boolean prefer-base straight-line
@@ -313,6 +384,10 @@
                      (make-place-constraint goal-pose context))
                    (when (eq action-type 'tilt)
                      (make-tilt-constraint tilt-direction tilt-angle))
+                   (when (eq action-type 'sequence)
+                     (make-sequence-constraint motion-sequence))
+                   (when (eq action-type 'take-pose)
+                     (make-take-pose-constraint pose-keyword head-pan head-tilt arm-lift arm-flex arm-roll wrist-flex wrist-roll))
                    ;;;;
 
                     )
@@ -496,7 +571,16 @@
                                     goal-pose
                                     tilt-direction
                                     tilt-angle
-                                    context)
+                                    context
+                                    motion-sequence
+                                    pose-keyword
+                                    head-pan
+                                    head-tilt
+                                    arm-lift
+                                    arm-flex
+                                    arm-roll
+                                    wrist-flex
+                                    wrist-roll)
   (declare (type (or number null) action-timeout)
            (type (or cl-transforms-stamped:pose-stamped null)
                  goal-pose-left goal-pose-right)
@@ -549,7 +633,16 @@
                  :goal-pose goal-pose
                  :tilt-direction tilt-direction
                  :tilt-angle tilt-angle
-                 :context context)
+                 :context context
+                 :motion-sequence motion-sequence
+                 :pose-keyword pose-keyword
+                 :head-pan head-pan
+                 :head-tilt head-tilt
+                 :arm-lift arm-lift
+                 :arm-flex arm-flex
+                 :arm-roll arm-roll
+                 :wrist-flex wrist-flex
+                 :wrist-roll wrist-roll)
    :action-timeout action-timeout
    ;; :check-goal-function (lambda (result status)
    ;;                        (declare (ignore result status))

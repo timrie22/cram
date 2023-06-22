@@ -200,6 +200,35 @@
         :object-name (eighth rest-args)
         :action-type 'tilt
         ))
+      (cram-common-designators:sequence
+       (giskard:call-arm-cartesian-action
+        :goal-pose-left argument-1
+        :goal-pose-right (first rest-args)
+        :collision-mode (second rest-args)
+        :collision-object-b (third rest-args)
+        :collision-object-b-link (fourth rest-args)
+        :collision-object-a (fifth rest-args)
+        :motion-sequence (sixth rest-args)
+        :action-type 'sequence
+        ))
+      (cram-common-designators:take-pose
+       (giskard:call-arm-cartesian-action ;; make own function seperate from cartesian and suturo stuff
+        :goal-pose-left argument-1
+        :goal-pose-right (first rest-args)
+        :collision-mode (second rest-args)
+        :collision-object-b (third rest-args)
+        :collision-object-b-link (fourth rest-args)
+        :collision-object-a (fifth rest-args)
+        :pose-keyword (sixth rest-args)
+        :head-pan (seventh rest-args)
+        :head-tilt (eighth rest-args)
+        :arm-lift (ninth rest-args)
+        :arm-flex (tenth rest-args)
+        :arm-roll (nth 10 rest-args); that's eleventh element
+        :wrist-flex (nth 11 rest-args)
+        :wrist-roll (nth 12 rest-args)
+        :action-type 'take-pose
+        ))
       )))
 
 

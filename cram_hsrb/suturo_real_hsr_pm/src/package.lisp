@@ -18,5 +18,7 @@
    #:close-gripper
 
    #:su-pour
+   #:sequence
+   #:take-pose
    
 ))

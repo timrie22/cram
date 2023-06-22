@@ -36,6 +36,7 @@
    ;; motions
    #:move-base #:move-torso #:move-head #:detect #:inspect #:move-gripper-joint
    #:move-tcp #:move-arm-push #:move-arm-pull #:move-joints #:move-custom #:move-gripper
-   #:world-state-detect #:monitor-joint-state #:wait #:reach #:lift #:place #:retract #:open-gripper #:close-gripper #:align-height #:tilt
+   #:world-state-detect #:monitor-joint-state #:wait #:reach #:lift #:place #:retract #:open-gripper #:close-gripper #:align-height #:tilt #:sequence
+   #:take-pose
    ;; wait-pm
    #:wait-pm))

@@ -418,6 +418,90 @@
               (equal ?tilt-angle nil)))
      (once (or (desig:desig-prop ?designator (:object-name ?object-name))
                (equal ?object-name nil))))
+
+  (<- (motion-grounding ?designator (sequence ?left-pose ?right-pose
+                                              ?collision-mode
+                                              ?collision-object-b
+                                              ?collision-object-b-link
+                                              ?collision-object-a
+                                              ?motion-sequence
+                                              ))
+     (property ?designator (:type :sequence-goal))
+     (once (or (property ?designator (:left-pose ?left-pose))
+               (equal ?left-pose nil)))
+     (once (or (property ?designator (:right-pose ?right-pose))
+               (equal ?right-pose nil)))
+     (once (or (desig:desig-prop ?designator (:collision-mode ?collision-mode))
+               (equal ?collision-mode nil)))
+     (once (or (desig:desig-prop ?designator (:collision-object-b ?collision-object-b))
+               (equal ?collision-object-b nil)))
+     (once (or (desig:desig-prop ?designator (:collision-object-b-link
+                                              ?collision-object-b-link))
+               (equal ?collision-object-b-link nil)))
+     (once (or (desig:desig-prop ?designator (:collision-object-a ?collision-object-a))
+               (equal ?collision-object-a nil)))
+     (once (or (desig:desig-prop ?designator (:motion-sequence ?motion-sequence))
+               (equal ?motion-sequence nil))))
+
+  (<- (motion-grounding ?designator (take-pose ?left-pose ?right-pose
+                                              ?collision-mode
+                                              ?collision-object-b
+                                              ?collision-object-b-link
+                                              ?collision-object-a
+                                              ?pose-keyword
+                                              ?head-pan
+                                              ?head-tilt
+                                              ?arm-lift
+                                              ?arm-flex
+                                              ?arm-roll
+                                              ?wrist-flex
+                                              ?wrist-roll
+                                              ))
+     (property ?designator (:type :taking-pose))
+     (once (or (property ?designator (:left-pose ?left-pose))
+               (equal ?left-pose nil)))
+     (once (or (property ?designator (:right-pose ?right-pose))
+               (equal ?right-pose nil)))
+     (once (or (desig:desig-prop ?designator (:collision-mode ?collision-mode))
+               (equal ?collision-mode nil)))
+     (once (or (desig:desig-prop ?designator (:collision-object-b ?collision-object-b))
+               (equal ?collision-object-b nil)))
+     (once (or (desig:desig-prop ?designator (:collision-object-b-link
+                                              ?collision-object-b-link))
+               (equal ?collision-object-b-link nil)))
+     (once (or (desig:desig-prop ?designator (:collision-object-a ?collision-object-a))
+               (equal ?collision-object-a nil)))
+    
+     (once (or (desig:desig-prop ?designator (:pose-keyword ?pose-keyword))
+               (equal ?pose-keyword nil)))
+     (once (or (desig:desig-prop ?designator (:head-pan ?head-pan))
+               (equal ?head-pan nil)))
+     (once (or (desig:desig-prop ?designator (:head-tilt ?head-tilt))
+               (equal ?head-tilt nil)))
+     (once (or (desig:desig-prop ?designator (:arm-lift ?arm-lift))
+               (equal ?arm-lift nil)))
+     (once (or (desig:desig-prop ?designator (:arm-flex ?arm-flex))
+               (equal ?arm-flex nil)))
+     (once (or (desig:desig-prop ?designator (:arm-roll ?arm-roll))
+               (equal ?arm-roll nil)))
+     (once (or (desig:desig-prop ?designator (:wrist-flex ?wrist-flex))
+               (equal ?wrist-flex nil)))
+     (once (or (desig:desig-prop ?designator (:wrist-roll ?wrist-roll))
+               (equal ?wrist-roll nil)))
+    )
+
+  ;; (<- (motion-grounding ?designator (sequence ?left-pose ?right-pose
+  ;;                                             ?test
+  ;;                                             ?collision-mode
+  ;;                                             ))
+  ;;   (property ?designator (:type :sequence-goal))
+  ;;   (once (or (property ?designator (:left-pose ?left-pose))
+  ;;             (equal ?left-pose nil)))
+  ;;   (once (or (property ?designator (:right-pose ?right-pose))
+  ;;              (equal ?right-pose nil)))
+  ;;   (property ?designator (:test ?test))
+  ;;   (once (or (desig:desig-prop ?designator (:collision-mode ?collision-mode))
+  ;;              (equal ?collision-mode nil))))
   
 
 
