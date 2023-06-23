@@ -141,6 +141,7 @@
                                                       (type picking-up)
                                                       (goal-pose ?object-pose)
                                                       (object-size ?object-size)
+                                                      (sequence-goal t)
                                                       (collision-mode :allow-all)))))))
                        (park-robot)
                        
@@ -163,6 +164,7 @@
                                                   (goal-pose ?target-pose)
                                                   (object-size ?object-size)
                                                   (from-above ?from-above)
+                                                  (sequence-goal t)
                                                   (neatly ?neatly)
                                                   (collision-mode :allow-all)))
                            (su-demos::with-knowledge-result ()
@@ -233,29 +235,25 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;; Hardcoded stuff for debugging ;;;;;;;;;;;;
 
+
 (defun park-robot ()
   "Default pose"
-  (call-take-pose-action 0 0 0 0 0 -1.5 -1.5 0)
-  (exe:perform (desig:a motion
-                        (type gripper-motion)
-                        (:open-close :close)
-                        (effort 0.1))))
+  (exe:perform (desig:an action
+                        (type taking-pose)
+                        (pose-keyword "park"))))
 
 (defun perc-robot ()
   "Default pose"
-  (call-take-pose-action 0 0 -0.65 0.25 0 -1.5 -1.5 0))
+  (exe:perform (desig:an action
+                        (type taking-pose)
+                        (pose-keyword "perceive"))))
 
 (defun wait-robot ()
   "Default pose"
-  (call-take-pose-action 0 0 0 0 0 0 -1.5 0))
+  (exe:perform (desig:an action
+                        (type taking-pose)
+                        (pose-keyword "assistance"))))
 
-(defun take-new-default1 ()
-  "Potential alternatives to the default pose"
-  (call-take-pose-action 0 0 0 0.3 -2.6 0 1 0))
-
-(defun take-new-default2 ()
-  "Potential alternatives to the default pose"
-  (call-take-pose-action 0 0 0 0.3 -2.6 1.5 -1.5 0.5))
 
 (defun nav-zero-pos ()
   "Starting pose in IAI office lab"
@@ -411,6 +409,3 @@
                  (make-instance 'cram-plan-occasions-events:object-detached-robot-knowrob
                    :name name
                    :pose pose)))
-
-
-

@@ -205,11 +205,12 @@
                 ((:object-size ?object-size))
                 ((:from-above ?from-above))
                 ((:neatly ?neatly))
+                ((:sequence-goal ?sequence-goal))
               &allow-other-keys)
   "Receives parameters from action-designator, and then executes the corresponding motions"
   (declare (type boolean ?move-base ?prefer-base ?straight-line ?precise-tracking
                  ?align-planes-left ?align-planes-right))
-
+  (unless ?sequence-goal
   (let ((?object-height (cl-transforms:z ?object-size))
         (?context `(("action" . "placing")
                     ("from_above" . ,?from-above))))
@@ -271,6 +272,54 @@
                         (align-planes-left ?align-planes-left)
                         (align-planes-right ?align-planes-right)
                         (precise-tracking ?precise-tracking))))
+
+  (when ?sequence-goal
+    (let ((?motions (list :aligning-height :reaching))
+          (?object-height (cl-transforms:z ?object-size)))
+      (print "sequence1")
+      ;;(break)
+      (exe:perform
+       (desig:an action
+                 (type sequence-goal)
+                 (action "placing")
+                 (motions ?motions)
+                 (goal-pose ?goal-pose)
+                 (object-size ?object-size)
+                 (from-above ?from-above)
+                 (object-height ?object-height)
+                 (object-name "test"))))
+    
+    (when ?neatly
+      (exe:perform (desig:a motion
+                            (type placing)
+                            (collision-mode ?collision-mode)
+                            (collision-object-b ?collision-object-b)
+                            (collision-object-b-link ?collision-object-b-link)
+                            (collision-object-a ?collision-object-a)
+                            (allow-base ?move-base)
+                            (prefer-base ?prefer-base)
+                            (straight-line ?straight-line)
+                            (align-planes-left ?align-planes-left)
+                            (align-planes-right ?align-planes-right)
+                            (precise-tracking ?precise-tracking)
+                            (goal-pose ?goal-pose))))
+    (exe:perform (desig:a motion
+                          (type gripper-motion)
+                          (:open-close :open)
+                          (effort 0.1)))
+    
+    (exe:perform (desig:a motion
+                          (type :retracting)
+                          (collision-mode ?collision-mode)
+                          (collision-object-b ?collision-object-b)
+                          (collision-object-b-link ?collision-object-b-link)
+                          (collision-object-a ?collision-object-a)
+                          (allow-base ?move-base)
+                          (prefer-base ?prefer-base)
+                          (straight-line ?straight-line)
+                          (align-planes-left ?align-planes-left)
+                          (align-planes-right ?align-planes-right)
+                          (precise-tracking ?precise-tracking)))))
 
 
 ;; @author Luca Krohm
@@ -526,6 +575,18 @@
                     ((:wrist-roll ?wrist-roll))
                   &allow-other-keys)
 
+  ;; example call
+  ;; (exe:perform (desig:an action
+  ;;                       (type taking-pose)
+  ;;                       (pose-keyword nil)
+  ;;                       (head-pan 0)
+  ;;                       (head-tilt 0)
+  ;;                       (arm-lift 0)
+  ;;                       (arm-flex 0)
+  ;;                       (arm-roll -1.5)
+  ;;                       (wrist-flex -1.5)
+  ;;                       (wrist-roll 0)))
+  
   ;;added action just in case we want failurehandling later
 
   (exe:perform (desig:a motion

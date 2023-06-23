@@ -94,6 +94,8 @@
               (equal ?from-above nil)))
     (once (or (desig:desig-prop ?designator (:neatly ?neatly))
               (equal ?neatly nil)))
+    (once (or (desig:desig-prop ?designator (:sequence-goal ?sequence-goal))
+              (equal ?sequence-goal nil)))
 
     (desig:designator :action ((:type :placing)
                                (:collision-mode ?collision-mode)
@@ -109,7 +111,8 @@
                                (:goal-pose ?goal-pose)
                                (:object-size ?object-size)
                                (:from-above ?from-above)
-                               (:neatly ?neatly))
+                               (:neatly ?neatly)
+                               (:sequence-goal ?sequence-goal))
                       ?resolved-action-designator))
 
    ;; @author Luca Krohm
