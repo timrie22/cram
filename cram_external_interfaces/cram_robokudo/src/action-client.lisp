@@ -431,6 +431,8 @@
                :jellostrawberrybox)
               (:teabagbox
                :teabagbox)
+              (:handle
+               :handle)
               (:pastrybox
                :pastrybox))))
       (setf rs-answer

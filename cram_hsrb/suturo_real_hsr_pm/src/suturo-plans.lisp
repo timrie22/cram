@@ -491,7 +491,7 @@
                         (collision-object-a ?collision-object-a)))
     ))      
 
-(defun sequence (&key
+(defun sequence-goal (&key
                    ((:action ?action))
                    ((:motions ?motions))
                    ((:object-type ?object-type))

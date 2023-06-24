@@ -158,6 +158,8 @@
 	 "http://www.ease-crc.org/ont/SUTURO.owl#TeaBagBox")
 	(:pastrybox
 	 "http://www.ease-crc.org/ont/SUTURO.owl#PastryBox")
+        (:handle
+         "http://www.ease-crc.org/ont/SOMA.owl#DesignedHandle")
         ))
 
 
