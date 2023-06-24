@@ -192,7 +192,7 @@
                       ?resolved-action-designator))
 
 
-  (<- (action-grounding ?designator (su-real:sequence ?resolved-action-designator))
+  (<- (action-grounding ?designator (su-real:sequence-goal ?resolved-action-designator))
     (spec:property ?designator (:type :sequence-goal))
     (once (or (desig:desig-prop ?designator (:action ?action))
               (equal ?action nil)))
