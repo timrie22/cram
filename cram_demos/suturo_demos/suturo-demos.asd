@@ -23,7 +23,7 @@
 	     
 
                cram-common-failures
-               cram-mobile-pick-place-plans
+               ;;cram-mobile-pick-place-plans
                cram-object-knowledge
 
                cram-cloud-logger
@@ -82,4 +82,4 @@
              (:file "poke-demo" :depends-on ("package"))
              (:file "take-pose-client" :depends-on ("package"))
              (:file "text-to-speech" :depends-on ("package"))
-             (:file "clean-the-table-demo" :depends-on ("package"))))))
+             (:file "clean-the-table-demo" :depends-on ("package" "utilities"))))))

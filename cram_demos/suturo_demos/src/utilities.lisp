@@ -273,6 +273,15 @@
    (cl-tf:make-quaternion (first (third result)) (second (third result)) (third (third result)) (fourth (third result))))
   )
 
+;;@author Felix Krause
+(defun make-pose-stamped-from-knowledge-result-for-bowl (result)
+  (cl-tf:make-pose-stamped
+   (first result) 0.0
+   (cl-tf:make-3d-vector
+    (first (second result)) (- 0.6 (second (second result))) (third (second result)))
+   (cl-tf:make-identity-rotation))
+  )
+
 
 ;; TODO add list of possible querys
 ;; @author Luca Krohm
@@ -534,7 +543,7 @@
 
 
 
-(defun human-assist (talk-string talk found-plate found-cup)
+(defun human-assist (talk-string talk)
   ;little bit different, talk, then move you arm, then open gripper otherwise she hits herself sometimes
   (talk-request talk-string talk)
   ;;this can also be used for bowl
@@ -545,18 +554,16 @@
                         (:open-close :open)
                         (effort 0.1)))
   ;;todo what if we dont find the plate?
-  (if found-plate
-      (call-text-to-speech-action "Please give me the plate!
-When you are ready poke the white part of my hand.")
-      (call-text-to-speech-action "Please give me the object,
-When you are ready poke the white part of my hand."))
+  (talk-request "Please give me the object,
+When you are ready poke the white part of my hand." talk)
+  
   ;;waiting for human
     (exe:perform
      (desig:an action
                (type monitoring-joint-state)
                (joint-name "wrist_flex_joint")))
   
-  (call-text-to-speech-action "Closing the Gripper, Thank you")
+   (talk-request "Closing the Gripper, thank you." talk)
   ;;closing gripper
   (exe:perform (desig:a motion
                         (type gripper-motion)
@@ -582,6 +589,42 @@ When you are ready poke the white part of my hand."))
                (second
                 (second description)))))
           ?list-of-objects))
+
+
+
+;; (let *((?test-place-pose
+;;            (cl-transforms-stamped:make-pose-stamped
+;;             cram-tf:*fixed-frame*
+;;             0.0
+;;             (cl-transforms:make-3d-vector 1.0 0.0 0.5)
+;;             (cl-transforms:make-quaternion 0 0 0.0 1))))
+;;                   (exe:perform (desig:an action
+;;                                  (type :placing-cart)
+;;                                  (goal-pose ?cereal-target-pose)
+
+
+;; (defun place-object (?arm ?target-pose-as-list
+;;                      &key ?left-grasp ?right-grasp ?object-placed-on ?object-to-place ?attachment)
+;;   (let ((?target-pose (ensure-pose-stamped ?target-pose-as-list)))
+
+;;       (exe:perform 
+;;        (desig:an action
+;;                  (type placing)
+;;                  (arm ?arm)
+;;                  (desig:when ?object-to-place
+;;                    (object ?object-to-place))
+;;                  (desig:when ?right-grasp
+;;                    (right-grasp ?right-grasp))
+;;                  (desig:when ?left-grasp
+;;                    (left-grasp ?left-grasp))
+;;                  (target (desig:a location
+;;                                   (desig:when ?object-placed-on
+;;                                     (on ?object-placed-on))
+;;                                   (desig:when ?object-to-place
+;;                                     (for ?object-to-place))
+;;                                   (desig:when ?attachment
+;;                                     (attachment ?attachment))
+;;                                   (pose ?target-pose)))))))
 
 ;;;;;;;;;;;;
 ;; VANESSA -----------------------------------------------------------------END
