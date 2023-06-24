@@ -373,7 +373,7 @@
                    ;;;;
                    ;; Constraints for motions
                    (when (eq action-type 'reach)
-                     (make-reach-constraint goal-pose "object_name" object-size object-shape context))
+                     (make-reach-constraint goal-pose object-name object-size object-shape context))
                    (when (eq action-type 'lift)
                      (make-lift-constraint "object_name" ))
                    (when (eq action-type 'retract)
