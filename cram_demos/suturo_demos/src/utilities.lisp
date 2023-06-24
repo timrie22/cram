@@ -272,11 +272,21 @@
   )
 
 ;;@author Felix Krause
+(defun make-pose-stamped-from-knowledge-result-for-smallies (result)
+  (cl-tf:make-pose-stamped
+   (first result) 0.0
+   (cl-tf:make-3d-vector
+    (first (second result)) (second (second result)) 0.7125000 )
+   (cl-tf:make-quaternion (first (third result)) (second (third result)) (third (third result)) (fourth (third result))))
+  )
+
+
+;;@author Felix Krause
 (defun make-pose-stamped-from-knowledge-result-for-bowl (result)
   (cl-tf:make-pose-stamped
    (first result) 0.0
    (cl-tf:make-3d-vector
-    (first (second result)) (- 0.6 (second (second result))) (third (second result)))
+    (+ (first (second result)) 0.04) (second (second result)) (- (third (second result)) 0.02))
    (cl-tf:make-identity-rotation))
   )
 
@@ -541,9 +551,9 @@
 
 
 
-(defun human-assist (talk-string talk)
+(defun human-assist (talk)
   ;little bit different, talk, then move you arm, then open gripper otherwise she hits herself sometimes
-  (talk-request talk-string talk)
+  (talk-request "I will need some help from the human,i will now move my arm, please be care: " talk)
   ;;this can also be used for bowl
   (cpl:seq
     (call-take-pose-action 0 0 0 0 0 -1.5 -1.5 1.6))
@@ -552,7 +562,7 @@
                         (:open-close :open)
                         (effort 0.1)))
   ;;todo what if we dont find the plate?
-  (talk-request "Please give me the object,
+  (talk-request "Please give me the Plate,
 When you are ready poke the white part of my hand." talk)
   
   ;;waiting for human
