@@ -1,6 +1,5 @@
 (in-package :su-demos)
 
-
 (defparameter *list-of-plans*
   '(:fetch
     :deliver
@@ -30,7 +29,6 @@
 (defun nlplistener (topic-name)  
   (setf *plan-subscriber* (roslisp:subscribe topic-name "gpsr_nlp/nlpCommands" #'plan-callback-function)))
 
-
 (defun plan-callback-function (message)
     
   (roslisp:with-fields (commands) message
@@ -59,19 +57,19 @@
 (defun subscriber-callback-function (message)
   (roslisp:with-fields (commands) message
     (let* ((?test commands)
-           (?plan (intern (string-upcase (aref *test* 0)) :keyword))
-           (?objectname (intern (string-upcase (substitute #\- #\space (aref *test* 1))) :keyword))
-           (?objecttype (intern (string-upcase (aref *test* 2)) :keyword))
-           (?personname (intern (string-upcase (aref *test* 3)) :keyword))
-           (?persontype (intern (string-upcase (aref *test* 4)) :keyword))
-           (?attribute (intern (string-upcase (substitute #\- #\space (aref *test* 5))) :keyword))
-           (?personaction (intern (string-upcase (substitute #\- #\space (aref *test* 6))) :keyword))
-           (?color (intern (string-upcase (aref *test* 7)) :keyword))
-           (?number (intern (string-upcase (aref *test* 8)) :keyword))
-           (?fur-location1 (intern (string-upcase (substitute #\- #\space (aref *test* 9))) :keyword))
-           (?fur-location2 (intern (string-upcase (substitute #\- #\space (aref *test* 10))) :keyword))
-           (?room1 (intern (string-upcase (substitute #\- #\space (aref *test* 11))) :keyword))
-           (?room2 (intern (string-upcase (substitute #\- #\space (aref *test* 12))) :keyword))
+           (?plan (intern (string-upcase (aref ?test 0)) :keyword))
+           (?objectname (intern (string-upcase (substitute #\- #\space (aref ?test 1))) :keyword))
+           (?objecttype (intern (string-upcase (aref ?test 2)) :keyword))
+           (?personname (intern (string-upcase (aref ?test 3)) :keyword))
+           (?persontype (intern (string-upcase (aref ?test 4)) :keyword))
+           (?attribute (intern (string-upcase (substitute #\- #\space (aref ?test 5))) :keyword))
+           (?personaction (intern (string-upcase (substitute #\- #\space (aref ?test 6))) :keyword))
+           (?color (intern (string-upcase (aref ?test 7)) :keyword))
+           (?number (intern (string-upcase (aref ?test 8)) :keyword))
+           (?fur-location1 (intern (string-upcase (substitute #\- #\space (aref ?test 9))) :keyword))
+           (?fur-location2 (intern (string-upcase (substitute #\- #\space (aref ?test 10))) :keyword))
+           (?room1 (intern (string-upcase (substitute #\- #\space (aref ?test 11))) :keyword))
+           (?room2 (intern (string-upcase (substitute #\- #\space (aref ?test 12))) :keyword))
 
            ;;???
            (?previous-objectname nil)

@@ -32,8 +32,7 @@
 (defun searching-object (?object ?pr-name ?pr-type ?pr-action ?location-nr-furt ?room) ;;;give object/person and give one location at least -object :bottle :nil :couch :nil) or (searching-object :nil :alex :couch :nil) 
   (let* ((?perceived-object nil)
          (?object-looking-check nil)
-         (?person-looking-check nil)
-         (?gpsr-objects nil))
+         (?person-looking-check nil))
     
     ;; (setf *personname*  :mehreen)
     ;; (setf *personaction* :sitting)
@@ -53,7 +52,7 @@
 ;;; go to the location
     
     (if (and (eq ?location-nr-furt :nil) (eq ?room :nil))
-        (navigate-to-location (get-specific-info-word ?object :default-location-in-room ?gpsr-objects) :nil) ;;; if no location is given get it from gpsr-knowledge where the object is supposed to be
+        (navigate-to-location (get-specific-info-word ?object :default-location-in-room *gpsr-objects*) :nil) ;;; if no location is given get it from gpsr-knowledge where the object is supposed to be
         (navigate-to-location ?location-nr-furt ?room)) ;;;; else go to the location
     
     (call-text-to-speech-action "Trying to perceive the object or person")
