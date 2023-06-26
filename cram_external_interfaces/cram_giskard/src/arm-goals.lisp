@@ -259,6 +259,30 @@
                             'giskard_msgs-msg:constraint
                             :weight_below_ca)))))))))
 
+(defun make-gripper-constraint (gripper-state
+                                     &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type PlaceObject which is a classname inside the manipulation code, which is responsible for 'placing'"
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "MoveGripper"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(,@(if (or (search "open" (string-downcase gripper-state))
+                (search "close" (string-downcase gripper-state)))
+          `(("gripper_state"
+             . ,(string-downcase gripper-state)))
+          `(("gripper_state"
+             . "neutral")))
+      
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
 (defun make-arm-cartesian-action-goal (left-pose right-pose
                                        pose-base-frame collision-mode
                                        &key
@@ -287,7 +311,8 @@
                                          arm-flex
                                          arm-roll
                                          wrist-flex
-                                         wrist-roll)
+                                         wrist-roll
+                                         gripper-state)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type (or null string) pose-base-frame)
            (type boolean prefer-base straight-line
@@ -388,6 +413,8 @@
                      (make-sequence-constraint motion-sequence))
                    (when (eq action-type 'take-pose)
                      (make-take-pose-constraint pose-keyword head-pan head-tilt arm-lift arm-flex arm-roll wrist-flex wrist-roll))
+                    (when (eq action-type 'gripper)
+                     (make-gripper-constraint gripper-state))
                    ;;;;
 
                     )
@@ -580,7 +607,8 @@
                                     arm-flex
                                     arm-roll
                                     wrist-flex
-                                    wrist-roll)
+                                    wrist-roll
+                                    gripper-state)
   (declare (type (or number null) action-timeout)
            (type (or cl-transforms-stamped:pose-stamped null)
                  goal-pose-left goal-pose-right)
@@ -642,7 +670,8 @@
                  :arm-flex arm-flex
                  :arm-roll arm-roll
                  :wrist-flex wrist-flex
-                 :wrist-roll wrist-roll)
+                 :wrist-roll wrist-roll
+                 :gripper-state gripper-state)
    :action-timeout action-timeout
    ;; :check-goal-function (lambda (result status)
    ;;                        (declare (ignore result status))
