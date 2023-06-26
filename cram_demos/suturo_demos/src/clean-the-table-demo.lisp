@@ -73,7 +73,6 @@
 
       ;;move to table
       (when (<= step 1)
-        (talk-request "I will now move!" talk)
         (move-hsr (make-pose-stamped-from-knowledge-result table)))
       
       ;;perceive  and set 
@@ -94,7 +93,6 @@
           
           (loop until (string= nextobject "I")
                 do
-                    (talk-request "I will now move!" talk)
                     (move-hsr (make-pose-stamped-from-knowledge-result table))
                     ;;set next object and current object
                     ;;own clean up hardcoded
@@ -159,12 +157,10 @@
                               
                               
                               
-                              (talk-request "I will now move, please be carefull!" talk)
                               ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
                               (move-hsr (make-pose-stamped-from-knowledge-result popcorntable))
                              
                               (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
-                              ;; ?frontal-placing and ?neatly are currently the same for each object, thats why i just use the same function until after the milestone
 
                               (when break (break))
 

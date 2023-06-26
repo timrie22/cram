@@ -231,6 +231,7 @@
 ;;@author Torge Olliges    
 (defun move-hsr (nav-goal-pose-stamped)
   "Receives pose `nav-goal-pose-stamped'. Lets the robot move to the given pose with a motion designator"
+  (talk-request "Take care, I will now move!" talk)
   (let* ((?successfull-pose (try-movement-stamped-list
                              (list nav-goal-pose-stamped))))
     (exe:perform 
@@ -592,13 +593,14 @@ When you are ready poke the white part of my hand." talk)
 
 (defun trim-knowledge-string (current-knowledge-object)
   "trims the knowledge name, when it is with http"
-  (let* ((?obj-start (+ 1 (search "#" current-knowledge-object)))
+  (let* ((?obj-start (or (search "#" current-knowledge-object)
+                         0))
 	(?obj-trim 
 		      (string-trim "'"
 				   (string-trim "|"
 						(subseq current-knowledge-object ?obj-start)))))
     (let* ((?obj-end (search "_" ?obj-trim))
-           (?obj (subseq ?obj-trim 0 ?obj-end)))
+           (?obj (subseq (string-trim "#" ?obj-trim) 0 ?obj-end)))
       ?obj)))
 
 
