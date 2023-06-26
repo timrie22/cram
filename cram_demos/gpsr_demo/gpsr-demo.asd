@@ -1,7 +1,6 @@
-(defsystem suturo-demos
+(defsystem gpsr-demo
   :depends-on (roslisp-utilities ; for ros-init-function
-
-	       actionlib
+               actionlib
                actionlib_msgs-msg
 
                cl-transforms
@@ -20,7 +19,7 @@
                cram-projection
                cram-occasions-events
                cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
-	     
+               
 
                cram-common-failures
                ;;cram-mobile-pick-place-plans
@@ -45,7 +44,7 @@
                cram-fetch-deliver-plans
                cram-urdf-environment-manipulation
 
-                ;; costmaps
+               ;; costmaps
                cram-btr-visibility-costmap
                cram-btr-spatial-relations-costmap
 
@@ -63,23 +62,18 @@
 	       navigation_msgs-msg
                move_base_msgs-msg
                tmc_control_msgs-msg
+               suturo-demos
+               gpsr_nlp-msg
                )
   
   :components
   ((:module "src"
             :components
             ((:file "package")
-             (:file "knowledge-utilities" :depends-on ("package"))
-             (:file "navigation-utilities" :depends-on ("package"))
-             (:file "utilities" :depends-on ("package" "knowledge-utilities" "navigation-utilities"))
-             (:file "setup" :depends-on ("package"))
-             (:file "setup-urdf" :depends-on ("package"))
-             (:file "cleanup-demo" :depends-on ("package"))
-             (:file "carry-my-luggage" :depends-on ("package" "utilities"))
-             (:file "storing-groceries-demo" :depends-on ("package"))
-             (:file "set-the-table-demo" :depends-on ("package"))
-             (:file "serve-breakfast-demo" :depends-on ("package" "utilities"))
-             (:file "poke-demo" :depends-on ("package"))
-             (:file "take-pose-client" :depends-on ("package"))
-             (:file "text-to-speech" :depends-on ("package"))
-             (:file "clean-the-table-demo" :depends-on ("package" "utilities"))))))
+             (:file "gpsr-knowledge" :depends-on ("package"))
+             (:file "gpsr-subscribers" :depends-on ("package"))
+             (:file "gpsr-plans" :depends-on ("package"))
+             (:file "gpsr-ln" :depends-on ("package"))
+             (:file "gpsr-pub" :depends-on ("package"))
+             (:file "gpsr-clean-plans" :depends-on ("package"))
+             (:file "gpsr-demo" :depends-on ("package"))))))
