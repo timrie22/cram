@@ -37,7 +37,7 @@
 
 (defparameter *objects* '(:CerealBox :milk :spoon :bowl))
 
-(defun serve-breakfast-demo(&key (step 0) (talk t) (break nil) (sequence-goals nil))
+(defun serve-breakfast-demo(&key (step 0) (talk t) (break nil) (?sequence-goals nil))
   
   ;; Calls knowledge to receive coordinates of the shelf pose, then relays that pose to navigation
   (with-knowledge-result (shelf table)
@@ -52,19 +52,20 @@
     (talk-request "Hello I am Toya, i will now serve breakfast!" talk)
 
     (when (<= step 1)
-      (move-hsr (make-pose-stamped-from-knowledge-result shelf))
+      (move-hsr (make-pose-stamped-from-knowledge-result shelf) talk)
       (sleep 1))
 
-    (talk-request "I am now perceiving!" talk)
-    (let* ((?source-object-desig
+   
+    (let* ((?current-object nil)
+           (?found-cereal nil)
+           (?source-object-desig
              (desig:all object
-                        (type :breakfast)))
-           (?object-desig
-             (exe:perform (desig:an action
-                                    (type detecting)
-                                    (object ?source-object-desig))))
-           (?current-object nil)
-           (?found-cereal nil))
+                        (type :breakfast))))
+      (talk-request "I am now perceiving!" talk)
+      (exe:perform (desig:an action
+                             (type detecting)
+                             (object ?source-object-desig)))
+      
       (with-knowledge-result (nextobject)
           `("next_object" nextobject)
         (print "next object:")
@@ -81,7 +82,7 @@
                    (print nextobject)
                    ;; (break)
                    (progn
-                     (move-hsr (make-pose-stamped-from-knowledge-result shelf))
+                     (move-hsr (make-pose-stamped-from-knowledge-result shelf) talk)
                      (cond
                        ((search "CerealBox" ?current-object) (setf ?found-cereal ?current-object))
                        (t
@@ -89,137 +90,156 @@
                                    (string= ?current-object "I")
                                    (not (eq ?found-cereal nil)))
                           (print "Inside found-cereal to current-object")
-                          ;; (break)
                           (setf ?current-object ?found-cereal)
                           (setf ?found-cereal nil))
-                        (cond
-                          ((search "Spoon" ?current-object) (wait-for-human-signal))
-                          ((search "Bowl" ?current-object) (wait-for-human-signal))
-                          (t 
-                           (with-knowledge-result (frame pose)
-                               `(and ("object_shape_workaround" ,?current-object frame _ _ _)
-                                     ("object_pose" ,?current-object pose))
-                             
-                             
-                             
-                             ;; picks up the object by executing the following motions:
-                             ;; - opening the gripper
-                             ;; - reaching for the object
-                             ;; - closing the gripper, thus gripping the object
-                             ;; - lifting the object
-                             ;; - retracting the arm to retrieve the object from, for example, a shelf
-                             ;;(call-text-to-speech-action "Picking up the object Cereal-Box")
-                             (let ((?object-size (get-target-size ?current-object))
-                                   (?object-pose (make-pose-stamped-from-knowledge-result pose)))
-                               (talk-request "I will now Pick up :" talk :current-knowledge-object ?current-object)
-                               (when break (break))
-                               (exe:perform (desig:an action
-                                                      (type picking-up)
-                                                      (goal-pose ?object-pose)
-                                                      (object-size ?object-size)
-                                                      (sequence-goal t)
-                                                      (collision-mode :allow-all)))))))
-                        (park-robot)
                         
-                        ;;(call-text-to-speech-action "Moving to target location")
-                        ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
-                        (move-hsr (make-pose-stamped-from-knowledge-result table))
-                        
-                        ;; places the object by executing the following motions:
-                        ;; - preparing to place the object, by lifting the arm to an appropriate ?object
-                        ;; - placing the object
-                        ;; - opening the gripper, thus releasing the object
-                        (unless (search "CerealBox" ?current-object)
+                        (with-knowledge-result (pose)
+                            `("object_pose" ,?current-object pose)                       
+                          
+                          ;; picks up the object by executing the following motions:
+                          ;; - opening the gripper
+                          ;; - reaching for the object
+                          ;; - closing the gripper, thus gripping the object
+                          ;; - lifting the object
+                          ;; - retracting the arm to retrieve the object from, for example, a shelf
                           (let ((?object-size (get-target-size ?current-object))
-                                (?from-above (get-frontal-placing ?current-object))
-                                (?neatly (get-neatly-placing ?current-object)))
-                            ;;(call-text-to-speech-action "Placing object Cereal-Box")
-                            ;; ?frontal-placing and ?neatly are currently the same for each object, thats why i just use the same function until after the milestone
-                            (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
+                                (?object-pose nil)
+                                (?small-object-case (or (search "Spoon" ?current-object)
+                                                        (search "Bowl" ?current-object))))
+                            (cond
+                              ((search "Bowl" ?current-object)
+                               ;;bowl i moved to the y side to be able to grasp
+                               (setf ?object-pose
+                                     (make-pose-stamped-from-knowledge-result-for-bowl pose)))
+                              (?small-object-case
+                               (setf ?object-pose
+                                     (make-pose-stamped-from-knowledge-result-for-smallies pose)))
+                              (t
+                               (setf ?object-pose
+                                     (make-pose-stamped-from-knowledge-result pose))))
+                            (talk-request "I will now Pick up :" talk :current-knowledge-object ?current-object)
                             (when break (break))
                             (exe:perform (desig:an action
-                                                   (type :placing)
-                                                   (goal-pose ?target-pose)
+                                                   (type picking-up)
+                                                   (goal-pose ?object-pose)
                                                    (object-size ?object-size)
-                                                   (from-above ?from-above)
-                                                   (sequence-goal t)
-                                                   (neatly ?neatly)
-                                                   (collision-mode :allow-all)))
-                            (talk-request "I placed the Object!" talk)
-                            (su-demos::with-knowledge-result ()
-                                `("object_pose" ,?current-object ,(reformat-stamped-pose-for-knowledge (get-object-pos ?current-object)))
-                              (park-robot))))))))))
+                                                   (sequence-goal ?sequence-goals)
+                                                   (collision-mode :allow-all)))))))
+                     (park-robot)
+                     
+                     ;;(call-text-to-speech-action "Moving to target location")
+                     ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
+                     (move-hsr (make-pose-stamped-from-knowledge-result table) talk)
+                     
+                     ;; places the object by executing the following motions:
+                     ;; - preparing to place the object, by lifting the arm to an appropriate ?object
+                     ;; - placing the object
+                     ;; - opening the gripper, thus releasing the object
+                     (unless (search "CerealBox" ?current-object)
+                       (let ((?object-size (get-target-size ?current-object))
+                             (?from-above (get-frontal-placing ?current-object))
+                             (?neatly (get-neatly-placing ?current-object)))
+                         ;;(call-text-to-speech-action "Placing object Cereal-Box")
+                         ;; ?frontal-placing and ?neatly are currently the same for each object, thats why i just use the same function until after the milestone
+                         (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
+                         (when break (break))
+                         (exe:perform (desig:an action
+                                                (type :placing)
+                                                (goal-pose ?target-pose)
+                                                (object-size ?object-size)
+                                                (from-above ?from-above)
+                                                (sequence-goal ?sequence-goals)
+                                                (neatly ?neatly)
+                                                (collision-mode :allow-all)))
+                         (talk-request "I placed the Object!" talk)
+                         (su-demos::with-knowledge-result ()
+                             `("object_pose" ,?current-object ,(reformat-stamped-pose-for-knowledge (get-object-pos ?current-object)))
+                           (talk-request "I will now perceive the object again!" talk)
+                           (perc-robot)
+                           (exe:perform (desig:an action
+                                                  (type detecting)
+                                                  (object ?source-object-desig)))
+                           (park-robot)
+                           )))))))
 
-      (with-knowledge-result (bowlframe)
-          `(and ("has_type" bowlname ,(transform-key-to-string :bowl))
-                ("object_shape_workaround" bowlname bowlframe _ _ _))
-        (let ((?object-size (get-target-size ?current-object))
-              (?bowl-size (get-target-size bowlframe))
-              (?cereal-target-pose (get-target-pos ?current-object))
-              (?milk-target-pose (get-object-pos "Milk"))
-              (?bowl-frame bowlframe))
+  (with-knowledge-result (bowlframe)
+      `(and ("has_type" bowlname ,(transform-key-to-string :bowl))
+            ("object_shape_workaround" bowlname bowlframe _ _ _))
+    (let ((?object-size (get-target-size ?current-object))
+          (?bowl-size (get-target-size bowlframe))
+          (?cereal-target-pose (get-target-pos ?current-object))
+          (?milk-target-pose (get-object-pos "Milk"))
+          (?bowl-frame bowlframe))
 
-          (talk-request "I will now pour:" talk :current-knowledge-object ?current-object)
-          (when break (break))
-          (exe:perform (desig:an action
-                                 (type su-pouring)
-                                 (target-object ?bowl-frame)
-                                 (object-size ?object-size)
-                                 (target-size ?bowl-size)
-                                 (collision-mode :allow-all)))
-          (park-robot)
-          (move-hsr (make-pose-stamped-from-knowledge-result table))
+      (talk-request "I will now pour:" talk :current-knowledge-object ?current-object)
+      (when break (break))
+      (exe:perform (desig:an action
+                             (type su-pouring)
+                             (target-object ?bowl-frame)
+                             (object-size ?object-size)
+                             (target-size ?bowl-size)
+                             (collision-mode :allow-all)))
+      (park-robot)
+      (move-hsr (make-pose-stamped-from-knowledge-result table) talk)
 
-          (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
-          (when break (break))
-          (exe:perform (desig:an action
-                                 (type :placing)
-                                 (goal-pose ?cereal-target-pose)
-                                 (object-size ?object-size)
-                                 (neatly T)
-                                 (collision-mode :allow-all)))
-          (talk-request "I placed the Object! " talk)
+      (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
+      (when break (break))
+      (exe:perform (desig:an action
+                             (type :placing)
+                             (goal-pose ?cereal-target-pose)
+                             (object-size ?object-size)
+                             (sequence-goal ?sequence-goals)
+                             (neatly T)
+                             (collision-mode :allow-all)))
+      (talk-request "I placed the Object! " talk)
 
-          (park-robot)
-          ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
-          (move-hsr (make-pose-stamped-from-knowledge-result table))
+      (talk-request "I will now perceive the object again!" talk)
+      (perc-robot)
+      (exe:perform (desig:an action
+                             (type detecting)
+                             (object ?source-object-desig)))
+      (park-robot)
+      ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
+      (move-hsr (make-pose-stamped-from-knowledge-result table) talk)
 
-          
-          (let ((?object-size (get-target-size "Milk")))
-            (talk-request "I will now Pick up :" talk :current-knowledge-object "MilkPack")
-            (when break (break))
-            (exe:perform (desig:an action
-                                   (type picking-up)
-                                   (goal-pose ?milk-target-pose);; ?milk-pose)
-                                   (object-size ?object-size)
-                                   (collision-mode :allow-all)))
-            (park-robot)
-            
-            ;;(call-text-to-speech-action "Moving to target location")
-            ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
-            (move-hsr (make-pose-stamped-from-knowledge-result table))
-            (talk-request "I will now pour:" talk :current-knowledge-object "MilkPack")
-            (when break (break))
-            
-            (exe:perform (desig:an action
-                                   (type su-pouring)
-                                   (target-object ?bowl-frame)
-                                   (object-size ?object-size)
-                                   (target-size ?bowl-size)
-                                   (collision-mode :allow-all)))
-            
-            (park-robot)
-            (move-hsr (make-pose-stamped-from-knowledge-result table))
-            (talk-request "I will now place: " talk :current-knowledge-object "MilkPack")
-            (when break (break))
-            (exe:perform (desig:an action
-                                   (type :placing)
-                                   (goal-pose ?milk-target-pose)
-                                   (object-size ?object-size)
-                                   (neatly T)
-                                   (collision-mode :allow-all)))
-            (talk-request "I placed the Object! " talk)
-            (park-robot)))))))
+      
+      (let ((?object-size (get-target-size "Milk")))
+        (talk-request "I will now Pick up :" talk :current-knowledge-object "MilkPack")
+        (when break (break))
+        (exe:perform (desig:an action
+                               (type picking-up)
+                               (goal-pose ?milk-target-pose);; ?milk-pose)
+                               (sequence-goal ?sequence-goals)
+                               (object-size ?object-size)
+                               (collision-mode :allow-all)))
+        (park-robot)
+        
+        ;;(call-text-to-speech-action "Moving to target location")
+        ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
+        (move-hsr (make-pose-stamped-from-knowledge-result table) talk)
+        (talk-request "I will now pour:" talk :current-knowledge-object "MilkPack")
+        (when break (break))
+        
+        (exe:perform (desig:an action
+                               (type su-pouring)
+                               (target-object ?bowl-frame)
+                               (object-size ?object-size)
+                               (target-size ?bowl-size)
+                               (collision-mode :allow-all)))
+        
+        (park-robot)
+        (move-hsr (make-pose-stamped-from-knowledge-result table) talk)
+        (talk-request "I will now place: " talk :current-knowledge-object "MilkPack")
+        (when break (break))
+        (exe:perform (desig:an action
+                               (type :placing)
+                               (goal-pose ?milk-target-pose)
+                               (object-size ?object-size)
+                               (sequence-goal ?sequence-goals)
+                               (neatly T)
+                               (collision-mode :allow-all)))
+        (talk-request "I placed the Object! " talk)
+        (park-robot)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;; Hardcoded stuff for debugging ;;;;;;;;;;;;
@@ -228,20 +248,20 @@
 (defun park-robot ()
   "Default pose"
   (exe:perform (desig:an action
-                        (type taking-pose)
-                        (pose-keyword "park"))))
+                         (type taking-pose)
+                         (pose-keyword "park"))))
 
 (defun perc-robot ()
   "Default pose"
   (exe:perform (desig:an action
-                        (type taking-pose)
-                        (pose-keyword "perceive"))))
+                         (type taking-pose)
+                         (pose-keyword "perceive"))))
 
 (defun wait-robot ()
   "Default pose"
   (exe:perform (desig:an action
-                        (type taking-pose)
-                        (pose-keyword "assistance"))))
+                         (type taking-pose)
+                         (pose-keyword "assistance"))))
 
 
 (defun nav-zero-pos ()
@@ -274,10 +294,10 @@
                                     (cl-tf2::make-3d-vector 2.0  -0.1 0.7)
                                     (cl-tf2::make-quaternion 0 0 0 1)))
 
-      ;; ((search "Spoon" obj-name)  (cl-tf2::make-pose-stamped
-      ;;                               "map" 0
-      ;;                               (cl-tf2::make-3d-vector 2.05 0.3 0.7)
-      ;;                               (cl-tf2::make-quaternion 0 0 0 1)))
+      ((search "Spoon" obj-name)  (cl-tf2::make-pose-stamped
+                                    "map" 0
+                                    (cl-tf2::make-3d-vector 2.05 0.3 0.7)
+                                    (cl-tf2::make-quaternion 0 0 0 1)))
 
       ((search "Bowl" obj-name)  (cl-tf2::make-pose-stamped
                                     "map" 0
@@ -296,10 +316,10 @@
                                     (cl-tf2::make-3d-vector 2.0 -0.1 0.8)
                                     (cl-tf2::make-quaternion 0 0 0 1)))
 
-      ;; ((search "Spoon" obj-name)  (cl-tf2::make-pose-stamped
-      ;;                               "map" 0
-      ;;                               (cl-tf2::make-3d-vector 2.05 0.3 0.7)
-      ;;                               (cl-tf2::make-quaternion 0 0 0 1)))
+      ((search "Spoon" obj-name)  (cl-tf2::make-pose-stamped
+                                    "map" 0
+                                    (cl-tf2::make-3d-vector 2.05 0.3 0.7)
+                                    (cl-tf2::make-quaternion 0 0 0 1)))
 
       ((search "Bowl" obj-name)  (cl-tf2::make-pose-stamped
                                     "map" 0
@@ -311,7 +331,7 @@
   (cond
       ((search "Cereal" obj-name) (cl-tf2::make-3d-vector 0.14 0.06 0.225))
       ((search "Milk" obj-name) (cl-tf2::make-3d-vector 0.09 0.06 0.2))
-      ;; ((search "Spoon" obj-name) (cl-tf2::make-3d-vector 0.16 0.06 0.215))
+      ((search "Spoon" obj-name) (cl-tf2::make-3d-vector 0.19 0.02 0.01))
       ((search "Bowl" obj-name) (cl-tf2::make-3d-vector 0.16 0.16 0.05))))
       
        
@@ -319,14 +339,14 @@
   (cond
       ((search "Cereal" obj-name) nil)
       ((search "Milk" obj-name) nil)
-      ;; ((search "Spoon" obj-name) (cl-tf2::make-3d-vector 0.16 0.06 0.215))
+      ((search "Spoon" obj-name) T)
       ((search "Bowl" obj-name) T)))
 
 (defun get-neatly-placing (obj-name)
   (cond
       ((search "Cereal" obj-name) T)
       ((search "Milk" obj-name) T)
-      ;; ((search "Spoon" obj-name) (cl-tf2::make-3d-vector 0.16 0.06 0.215))
+      ((search "Spoon" obj-name) nil)
       ((search "Bowl" obj-name) nil)))
 
 

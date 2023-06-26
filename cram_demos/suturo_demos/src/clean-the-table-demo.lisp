@@ -26,7 +26,7 @@
            (with-knowledge-result (result)
                `(and ("has_urdf_name" object ,popcorndrawer)
                      ("object_rel_pose" object "perceive" result))
-             (move-hsr (make-pose-stamped-from-knowledge-result result)))
+             (move-hsr (make-pose-stamped-from-knowledge-result result) talk))
            
          
          (print "Performing sequence, door will be opened.")
@@ -73,7 +73,7 @@
 
       ;;move to table
       (when (<= step 1)
-        (move-hsr (make-pose-stamped-from-knowledge-result table)))
+        (move-hsr (make-pose-stamped-from-knowledge-result table) talk))
       
       ;;perceive  and set 
       (when (<= step 2)
@@ -93,7 +93,7 @@
           
           (loop until (string= nextobject "I")
                 do
-                    (move-hsr (make-pose-stamped-from-knowledge-result table))
+                    (move-hsr (make-pose-stamped-from-knowledge-result table) talk)
                     ;;set next object and current object
                     ;;own clean up hardcoded
                    (let* ((?target-pose (get-target-pos-clean-up nextobject)))
@@ -158,7 +158,7 @@
                               
                               
                               ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
-                              (move-hsr (make-pose-stamped-from-knowledge-result popcorntable))
+                              (move-hsr (make-pose-stamped-from-knowledge-result popcorntable) talk)
                              
                               (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
 
@@ -220,13 +220,6 @@
         (cram-designators::object-identifier cram-designators:data))) 
       object    
      (intern (string-trim "-1" ?type) :keyword)))
-
-
-
-
-
-
-
 
 ;;@author Tim Rienits
 ;; The hardcoded poses, where objects are to be placed into the dishwasher.
