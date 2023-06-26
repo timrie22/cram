@@ -558,11 +558,11 @@
   (talk-request "I will need some help from the human,i will now move my arm, please be care: " talk)
   ;;this can also be used for bowl
   (cpl:seq
-    (call-take-pose-action 0 0 0 0 0 -1.5 -1.5 1.6))
-  (exe:perform (desig:a motion
-                        (type gripper-motion)
-                        (:open-close :open)
-                        (effort 0.1)))
+    (wait-robot)
+    (exe:perform (desig:a motion
+                          (type gripper-motion)
+                          (:open-close :open)
+                          (effort 0.1))))
   ;;todo what if we dont find the plate?
   (talk-request "Please give me the Plate,
 When you are ready poke the white part of my hand." talk)
@@ -581,10 +581,26 @@ When you are ready poke the white part of my hand." talk)
                         (effort 0.1))))
 
 
-(defun talk-request (talk-string talk)
+
+(defun talk-request (talk-string talk &key (current-knowledge-object nil))
+  "Use this function as follow (talk-string 'I will now pick up ' t/n :current-knowledge-object 'http...#bowl_34123')"
   ;;just added a when around it so we can decide if toya should be silent
-  (when talk
-    (call-text-to-speech-action talk-string)))
+ (let* ((talkery talk-string))
+  (when current-knowledge-object
+    (setf talkery (concatenate 'string talk-string  (trim-knowledge-string current-knowledge-object))))
+  (when talk (call-text-to-speech-action talkery))))
+
+(defun trim-knowledge-string (current-knowledge-object)
+  "trims the knowledge name, when it is with http"
+  (let* ((?obj-start (+ 1 (search "#" current-knowledge-object)))
+	(?obj-trim 
+		      (string-trim "'"
+				   (string-trim "|"
+						(subseq current-knowledge-object ?obj-start)))))
+    (let* ((?obj-end (search "_" ?obj-trim))
+           (?obj (subseq ?obj-trim 0 ?obj-end)))
+      ?obj)))
+
 
 
 (defun extract-percept-msg-obj-type-to-string (?list-of-objects)
@@ -638,3 +654,24 @@ When you are ready poke the white part of my hand." talk)
 
 ;;;;;;;;;;;;
 ;; VANESSA -----------------------------------------------------------------END
+
+
+;; Luca
+
+(defun park-robot ()
+  "Default pose"
+  (exe:perform (desig:an action
+                        (type taking-pose)
+                        (pose-keyword "park"))))
+
+(defun perc-robot ()
+  "Default pose"
+  (exe:perform (desig:an action
+                        (type taking-pose)
+                        (pose-keyword "perceive"))))
+
+(defun wait-robot ()
+  "Default pose"
+  (exe:perform (desig:an action
+                        (type taking-pose)
+                        (pose-keyword "assistance"))))
