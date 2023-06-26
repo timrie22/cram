@@ -638,3 +638,35 @@ When you are ready poke the white part of my hand." talk)
 
 ;;;;;;;;;;;;
 ;; VANESSA -----------------------------------------------------------------END
+
+
+;;;;;;;;;;; VIZBOX ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;@author Tim Rienits
+;; Print on VizBox what the Robot is saying.
+(defun vizbox-robot-says (message)
+
+    (let ((pub (roslisp:advertise "robot_text" "std_msgs/String")))
+        (sleep 1)
+        (roslisp:publish-msg pub :data (format nil message)))
+  )
+
+;;@author Tim Rienits
+;; Print on VizBox what the robot has heard the operator say.
+(defun vizbox-robot-heard (message)
+  
+    (let ((pub (roslisp:advertise "operator_text" "std_msgs/String")))
+
+        (sleep 1)
+        (roslisp:publish-msg pub :data (format nil message)))
+  )
+
+;;@author Tim Rienits
+;; Sets the current step of the plan to new_step (starts at 0).
+(defun vizbox-set-step (new_step)
+
+    (let ((pub (roslisp:advertise "challenge_step" "std_msgs/UInt32")))
+
+        (sleep 1)
+        (roslisp:publish-msg pub :data new_step))
+  )
