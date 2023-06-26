@@ -110,7 +110,7 @@
               (su-demos::call-text-to-speech-action "Failed to grasp the object, retrying")
               (sleep 1)
               (cpl:fail 'common-fail:gripper-closed-completely
-                        :description "Object slipped")))
+                        :description "Object slipped"))))
           
           
           (exe:perform (desig:a motion
