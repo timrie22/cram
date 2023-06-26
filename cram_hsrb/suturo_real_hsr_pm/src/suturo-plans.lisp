@@ -76,9 +76,9 @@
                                 (object-name ?object-name)))
           
           (exe:perform (desig:a motion
-                                (type gripper-motion)
-                                (:open-close :open)
-                                (effort 0.1)))
+                                (type gripper)
+                                (gripper-state "open")))
+          
           (let ((?context `(("action" . "grasping")
                             ("from_above" . ,?from-above))))
             
@@ -96,9 +96,8 @@
           (cpl:pursue
             (cpl:seq
               (exe:perform (desig:a motion
-                                    (type gripper-motion)
-                                    (open-close :close)
-                                    (effort 0.1)))
+                                    (type gripper)
+                                    (gripper-state "close")))
               (sleep 1)
               (su-demos::call-text-to-speech-action "I was able to grasp the object"))
            (unless ?from-above
@@ -143,9 +142,8 @@
       
       (when ?sequence-goal
         (exe:perform (desig:a motion
-                              (type gripper-motion)
-                              (:open-close :open)
-                              (effort 0.1)))
+                              (type gripper)
+                              (gripper-state "open")))
         
         (let ((?motions (list :aligning-height :reaching :gripper))
               (?object-height (cl-transforms:z ?object-size)))
@@ -167,9 +165,8 @@
         (cpl:pursue
           (cpl:seq
             (exe:perform (desig:a motion
-                                  (type gripper-motion)
-                                  (:open-close :close)
-                                  (effort 0.1)))
+                                  (type gripper)
+                                  (gripper-state "close")))
             (sleep 1)
             (su-demos::call-text-to-speech-action "Managed to grasp the object"))
           (cpl:seq
@@ -261,9 +258,8 @@
                             (goal-pose ?goal-pose))))
 
     (exe:perform (desig:a motion
-                          (type gripper-motion)
-                          (:open-close :open)
-                          (effort 0.1)))
+                          (type gripper)
+                          (gripper-state "open")))
     
     (exe:perform (desig:a motion
                           (type :retracting)
@@ -309,9 +305,8 @@
                             (precise-tracking ?precise-tracking)
                             (goal-pose ?goal-pose))))
     (exe:perform (desig:a motion
-                          (type gripper-motion)
-                          (:open-close :open)
-                          (effort 0.1)))
+                          (type gripper)
+                          (gripper-state "open")))
     
     (exe:perform (desig:a motion
                           (type :retracting)
@@ -349,9 +344,8 @@
                  ?align-planes-left ?align-planes-right))
 
   (exe:perform (desig:a motion
-                        (type gripper-motion)
-                        (:open-close :open)
-                        (effort 0.1)))
+                        (type gripper)
+                        (gripper-state "open")))
 
   (let ((?context `(("action" . "grasping"))))
     (exe:perform (desig:a motion
@@ -370,10 +364,9 @@
                           (context ?context))))
   
   (exe:perform (desig:a motion
-                        (type gripper-motion)
-                        (:open-close :close)
-                        (effort 0.1)))
-
+                        (type gripper)
+                        (gripper-state "close")))
+  
   (exe:perform (desig:a motion
                         (type pulling)
                         (arm :left)
@@ -381,9 +374,8 @@
                         (joint-angle ?joint-angle)))
 
   (exe:perform (desig:a motion
-                        (type gripper-motion)
-                        (:open-close :open)
-                        (effort 0.1)))
+                        (type gripper)
+                        (gripper-state "open")))
   
   (exe:perform (desig:a motion
                         (type :retracting)
@@ -546,42 +538,27 @@
           (mapcar (lambda (motion)
                     (let ((attribs (get-attributes motion))
                           (attr-list nil))
-                      
-                      (setf attr-list
-                            (pairlis (mapcar (lambda (attr)
-                                               (case attr
-                                                 (:object-type "object_type")
-                                                 (:goal-pose "goal_pose")
-                                                 (:object-height "object_height")
-                                                 (:object-size "object_size")
-                                                 (:object-shape "object_shape")
-                                                 (:object-name "object_name")
-                                                 (:action "context")
-                                                 (:target-object "target_object")
-                                                 (:target-size "target_size")
-                                                 (:target-name "target_name")
-                                                 (:tilt-angle "tilt_angle")
-                                                 (:reference-frame "reference_frame")
-                                                 (:gripper-state "gripper_state")))
-                                             attribs)
-                                     (mapcar (lambda (attr)
-                                               (case attr
-                                                 (:object-type ?object-type)
-                                                 (:goal-pose `(("message_type" . "geometry_msgs/PoseStamped")
-                                                               ("message" . ,(giskard::to-hash-table ?goal-pose))))
-                                                 (:object-height  ?object-height)
-                                                 (:object-size  `(("message_type" . "geometry_msgs/Vector3")
-                                                                  ("message" . ,(giskard::to-hash-table ?object-size))))
-                                                 (:object-shape  ?object-shape)
-                                                 (:object-name ?object-name)
-                                                 (:action (generate-context ?action :from-above ?from-above))
-                                                 (:target-object ?target-object)
-                                                 (:target-size ?target-size)
-                                                 (:target-name ?target-name)
-                                                 (:tilt-angle ?tilt-angle)
-                                                 (:reference-frame ?reference-frame)
-                                                 (:gripper-state ?gripper-state)))
-                                             attribs)))
+
+                      (setf attr-list (mapcar (lambda (attr)
+                                                 (case attr
+                                                   (:object-type `("object_type" . ,?object-type))
+                                                   (:goal-pose `("goal_pose" . (("message_type" . "geometry_msgs/PoseStamped")
+                                                                                 ("message" . ,(giskard::to-hash-table ?goal-pose)))))
+                                                   (:object-height `("object_height" . ,?object-height))
+                                                   (:object-size `("object_size" . (("message_type" . "geometry_msgs/Vector3")
+                                                                                     ("message" . ,(giskard::to-hash-table ?object-size)))))
+                                                   (:object-shape `("object_shape" . ,?object-shape))
+                                                   (:object-name `("object_name". ,?object-name))
+                                                   (:action `("context" . ,(generate-context ?action :from-above ?from-above)))
+                                                   (:target-object `("target_object" . ,?target-object))
+                                                   (:target-size `("target_size" . (("message_type" . "geometry_msgs/Vector3")
+                                                                                     ("message" . ,(giskard::to-hash-table ?target-size)))))
+                                                   (:target-name `("target_name" . ,?target-name))
+                                                   (:tilt-angle `("tilt_angle" . ,?tilt-angle))
+                                                   (:reference-frame `("reference_frame" . ,?reference-frame))
+                                                   (:gripper-state `("gripper_state" . ,?gripper-state))))
+                                               attribs))
+               
 
                       (case motion
                         (:aligning-height `("AlignHeight" . ,attr-list))
