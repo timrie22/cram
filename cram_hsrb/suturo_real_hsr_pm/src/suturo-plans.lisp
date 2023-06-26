@@ -89,6 +89,8 @@
                                   (object-shape ?object-shape)
                                   (object-name ?object-name)
                                   (context ?context))))
+
+          (sleep 2)
           
           (cpl:pursue
             (cpl:seq
@@ -97,7 +99,8 @@
                                     (:open-close :close)
                                     (effort 0.1)))
               (sleep 1)
-              (su-demos::call-text-to-speech-action "Managed to grasp the object"))
+              (su-demos::call-text-to-speech-action "I was able to grasp the object"))
+           (unless ?from-above
             (cpl:seq
               (exe:perform
                (desig:an action
@@ -106,7 +109,7 @@
               (su-demos::call-text-to-speech-action "Failed to grasp the object, retrying")
               (sleep 1)
               (cpl:fail 'common-fail:gripper-closed-completely
-                        :description "Object slipped")))
+                        :description "Object slipped"))))
       
       
           (exe:perform (desig:a motion
