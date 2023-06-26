@@ -90,6 +90,8 @@
                                   (object-shape ?object-shape)
                                   (object-name ?object-name)
                                   (context ?context))))
+
+          (sleep 2)
           
           (cpl:pursue
             (cpl:seq
@@ -98,7 +100,8 @@
                                     (open-close :close)
                                     (effort 0.1)))
               (sleep 1)
-              (su-demos::call-text-to-speech-action "Managed to grasp the object"))
+              (su-demos::call-text-to-speech-action "I was able to grasp the object"))
+           (unless ?from-above
             (cpl:seq
               (exe:perform
                (desig:an action

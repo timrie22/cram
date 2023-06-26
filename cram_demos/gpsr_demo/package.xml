@@ -1,10 +1,12 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>suturo_demos</name>
+  <name>gpsr_demo</name>
   <version>0.0.0</version>
-  <description>The suturo_demos package</description>
+  <description>The gpsr demo package</description>
 
-  <maintainer email="tolliges@uni-bremen.de">Torge Olliges</maintainer>
+  <maintainer email="hawkin@uni-bremen.de">Alina Hawkin</maintainer>
+  <maintainer email="mnaeem@uni-bremen.de">Mehreen Naeem</maintainer>
+  <maintainer email="khoshnam@uni-bremen.de">Mohammad Khoshnazar</maintainer>
 
   <license>TODO</license>
 
@@ -54,6 +56,9 @@
   <depend>cram_donbot_description</depend>
   <depend>cram_hsrb_description</depend>
   <exec_depend>tmc_msgs</exec_depend>
+
+  <depend>gpsr_nlp</depend>
+
   <export>
 
   </export>
