@@ -26,7 +26,7 @@
            (with-knowledge-result (result)
                `(and ("has_urdf_name" object ,popcorndrawer)
                      ("object_rel_pose" object "perceive" result))
-             (move-hsr (make-pose-stamped-from-knowledge-result result)))
+             (move-hsr (make-pose-stamped-from-knowledge-result result) talk))
            
          
          (print "Performing sequence, door will be opened.")
@@ -73,12 +73,11 @@
 
       ;;move to table
       (when (<= step 1)
-        (talk-request "I will now move!" talk)
-        (move-hsr (make-pose-stamped-from-knowledge-result table))
-        (call-take-pose-action 0 0 -0.65 0.25 0 -1.5 -1.5 0))
+        (move-hsr (make-pose-stamped-from-knowledge-result table) talk))
       
       ;;perceive  and set 
       (when (<= step 2)
+        (perc-robot)
         (talk-request "I am now perceiving!" talk)
         (setf ?source-object-desig
               (desig:all object
@@ -90,15 +89,11 @@
       (when (<= step 3)
         (with-knowledge-result (nextobject)
             `("next_object" nextobject)
-
           (when break (break))
-          ;; nextobject
-          ;; )))))
           
           (loop until (string= nextobject "I")
                 do
-                    (talk-request "I will now move!" talk)
-                    (move-hsr (make-pose-stamped-from-knowledge-result table))
+                    (move-hsr (make-pose-stamped-from-knowledge-result table) talk)
                     ;;set next object and current object
                     ;;own clean up hardcoded
                    (let* ((?target-pose (get-target-pos-clean-up nextobject)))
@@ -139,14 +134,13 @@
                               (setf ?current-object-from-above ?small-object-case)
 
                               (if (search "MetalPlate" ?current-object)
+                                  ;;maybe put this into a better function
                                   (human-assist talk)
                                   (progn
                                     ;;pick up object
                                     ;;care from my site atm no failure handling failure handling should only be disabled when from-above
-                                    (let ((text-string (concatenate 'string "I will now pick-up: " (trim-knowledge-string ?current-object))))
-                                      (print text-string)
                                       (when break (break))
-                                    (talk-request text-string talk))
+                                    (talk-request "I will now Pick up :" talk :current-knowledge-object ?current-object)
                                         ;(print (concatenate 'string "object-pose" ?object-pose))
                                         ;(print (concatenate 'string "object-size" ?object-size))
                                         ;(print (concatenate 'string "current-object-from-above" ?current-object-from-above))
@@ -163,14 +157,11 @@
                               
                               
                               
-                              (talk-request "I will now move, please be carefull!" talk)
                               ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
-                              (move-hsr (make-pose-stamped-from-knowledge-result popcorntable))
+                              (move-hsr (make-pose-stamped-from-knowledge-result popcorntable) talk)
                              
-                              (talk-request "I will now place the Object!" talk)
-                              ;; ?frontal-placing and ?neatly are currently the same for each object, thats why i just use the same function until after the milestone
+                              (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
 
-                              (print ?target-pose)
                               (when break (break))
 
                               (exe:perform (desig:an action
@@ -213,18 +204,6 @@
       ((search "MetalPlate" obj-name) (cl-tf2::make-3d-vector 0.26 0.26 0.0125))))   
 
 
-
-(defun trim-knowledge-string (current-knowledge-object)
-  (let* ((?obj-start (+ 1 (search "#" current-knowledge-object)))
-	(?obj-trim 
-		      (string-trim "'"
-				   (string-trim "|"
-						(subseq current-knowledge-object ?obj-start)))))
-    (let* ((?obj-end (search "_" ?obj-trim))
-           (?obj (subseq ?obj-trim 0 ?obj-end)))
-      ?obj)))
-
-
 ;;@author Felix Krause
 ;; Extracts the pose from an Object Designator.
 (defun extract-pose (object)
@@ -241,13 +220,6 @@
         (cram-designators::object-identifier cram-designators:data))) 
       object    
      (intern (string-trim "-1" ?type) :keyword)))
-
-
-
-
-
-
-
 
 ;;@author Tim Rienits
 ;; The hardcoded poses, where objects are to be placed into the dishwasher.

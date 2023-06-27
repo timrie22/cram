@@ -179,6 +179,8 @@
               (equal ?target-size nil)))
     (once (or (desig:desig-prop ?designator (:target-name ?target-name))
               (equal ?target-name nil)))
+    (once (or (desig:desig-prop ?designator (:sequence-goal ?sequence-goal))
+              (equal ?sequence-goal nil)))
 
     (desig:designator :action ((:type :su-pouring)
                                (:collision-mode ?collision-mode)
@@ -188,7 +190,8 @@
                                (:object-size ?object-size)
                                (:target-object ?target-object)
                                (:target-size ?target-size)
-                               (:target-name ?target-name))
+                               (:target-name ?target-name)
+                               (:sequence-goal ?sequence-goal))
                       ?resolved-action-designator))
 
 
@@ -224,6 +227,8 @@
               (equal ?tilt-angle nil)))
     (once (or (desig:desig-prop ?designator (:reference-frame ?reference-frame))
               (equal ?reference-frame nil)))
+    (once (or (desig:desig-prop ?designator (:gripper-state ?gripper-state))
+              (equal ?gripper-state nil)))
 
     (desig:designator :action ((:type :sequence-goal)
                                (:action ?action)
@@ -241,6 +246,7 @@
                                (:target-name ?target-name)
                                (:tilt-angle ?tilt-angle)
                                (:reference-frame ?reference-frame)
+                               (:gripper-state ?gripper-state)
                                )
                       ?resolved-action-designator))
 

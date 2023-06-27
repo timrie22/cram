@@ -229,6 +229,17 @@
         :wrist-roll (nth 12 rest-args)
         :action-type 'take-pose
         ))
+      (cram-common-designators:gripper
+       (giskard:call-arm-cartesian-action
+        :goal-pose-left argument-1
+        :goal-pose-right (first rest-args)
+        :collision-mode (second rest-args)
+        :collision-object-b (third rest-args)
+        :collision-object-b-link (fourth rest-args)
+        :collision-object-a (fifth rest-args)
+        :gripper-state (sixth rest-args)
+        :action-type 'gripper
+        ))
       )))
 
 

@@ -490,18 +490,32 @@
                (equal ?wrist-roll nil)))
     )
 
-  ;; (<- (motion-grounding ?designator (sequence ?left-pose ?right-pose
-  ;;                                             ?test
-  ;;                                             ?collision-mode
-  ;;                                             ))
-  ;;   (property ?designator (:type :sequence-goal))
-  ;;   (once (or (property ?designator (:left-pose ?left-pose))
-  ;;             (equal ?left-pose nil)))
-  ;;   (once (or (property ?designator (:right-pose ?right-pose))
-  ;;              (equal ?right-pose nil)))
-  ;;   (property ?designator (:test ?test))
-  ;;   (once (or (desig:desig-prop ?designator (:collision-mode ?collision-mode))
-  ;;              (equal ?collision-mode nil))))
+  (<- (motion-grounding ?designator (gripper ?left-pose ?right-pose
+                                              ?collision-mode
+                                              ?collision-object-b
+                                              ?collision-object-b-link
+                                              ?collision-object-a
+                                              ?gripper-state
+                                              ))
+     (property ?designator (:type :gripper))
+     (once (or (property ?designator (:left-pose ?left-pose))
+               (equal ?left-pose nil)))
+     (once (or (property ?designator (:right-pose ?right-pose))
+               (equal ?right-pose nil)))
+     (once (or (desig:desig-prop ?designator (:collision-mode ?collision-mode))
+               (equal ?collision-mode :allow-hand)))
+     (once (or (desig:desig-prop ?designator (:collision-object-b ?collision-object-b))
+               (equal ?collision-object-b nil)))
+     (once (or (desig:desig-prop ?designator (:collision-object-b-link
+                                              ?collision-object-b-link))
+               (equal ?collision-object-b-link nil)))
+     (once (or (desig:desig-prop ?designator (:collision-object-a ?collision-object-a))
+               (equal ?collision-object-a nil)))
+    
+     (once (or (desig:desig-prop ?designator (:gripper-state ?gripper-state))
+               (equal ?gripper-state nil)))
+    )
+
   
 
 
