@@ -92,24 +92,27 @@
                                   (context ?context))))
 
           (sleep 2)
-          
-          (cpl:pursue
-            (cpl:seq
+
+          (if ?from-above
               (exe:perform (desig:a motion
                                     (type gripper)
                                     (gripper-state "close")))
-              (sleep 1)
-              (su-demos::call-text-to-speech-action "I was able to grasp the object"))
-           (unless ?from-above
-            (cpl:seq
-              (exe:perform
-               (desig:an action
-                         (type monitoring-joint-state)
-                         (joint-name "hand_l_proximal_joint")))
-              (su-demos::call-text-to-speech-action "Failed to grasp the object, retrying")
-              (sleep 1)
-              (cpl:fail 'common-fail:gripper-closed-completely
-                        :description "Object slipped"))))
+              (cpl:pursue
+                (cpl:seq
+                  (exe:perform (desig:a motion
+                                        (type gripper)
+                                        (gripper-state "close")))
+                  (sleep 1)
+                  (su-demos::call-text-to-speech-action "I was able to grasp the object"))
+                (cpl:seq
+                  (exe:perform
+                   (desig:an action
+                             (type monitoring-joint-state)
+                             (joint-name "hand_l_proximal_joint")))
+                  (su-demos::call-text-to-speech-action "Failed to grasp the object, retrying")
+                  (sleep 1)
+                  (cpl:fail 'common-fail:gripper-closed-completely
+                            :description "Object slipped"))))
           
           
           (exe:perform (desig:a motion
@@ -145,7 +148,7 @@
                               (type gripper)
                               (gripper-state "open")))
         
-        (let ((?motions (list :aligning-height :reaching :gripper))
+        (let ((?motions (list :aligning-height :reaching))
               (?object-height (cl-transforms:z ?object-size)))
           (print "sequence1")
           ;;(break)
@@ -187,6 +190,7 @@
                      (type sequence-goal)
                      (action "grasping")
                      (motions ?motions)
+                     (reference-frame "hand_gripper_tool_frame")
                      (object-name "test"))))))))
 
 ;; @author Luca Krohm
@@ -533,6 +537,7 @@
                         ((:tilt-angle ?tilt-angle))
                         ((:reference-frame ?reference-frame))
                         ((:gripper-state ?gripper-state))
+                        ((:pose-keyword ?pose-keyword))
                       &allow-other-keys)
   (let ((?motion-sequence          
           (mapcar (lambda (motion)
@@ -556,7 +561,8 @@
                                                    (:target-name `("target_name" . ,?target-name))
                                                    (:tilt-angle `("tilt_angle" . ,?tilt-angle))
                                                    (:reference-frame `("reference_frame" . ,?reference-frame))
-                                                   (:gripper-state `("gripper_state" . ,?gripper-state))))
+                                                   (:gripper-state `("gripper_state" . ,?gripper-state))
+                                                   (:pose-keyword `("pose_keyword" . ,?pose-keyword))))
                                                attribs))
                
 
@@ -566,7 +572,8 @@
                         (:lifting `("LiftObject" . ,attr-list))
                         (:retracting `("Retracting" . ,attr-list))
                         (:tilting `("Tilting" . ,attr-list))
-                        (:gripper `("MoveGripper" . ,attr-list)))))
+                        (:gripper `("MoveGripper" . ,attr-list))
+                        (:taking-pose `("TakePose" . ,attr-list)))))
                   
                   ?motions)))
     
@@ -602,13 +609,15 @@
   ;;                       (arm-roll -1.5)
   ;;                       (wrist-flex -1.5)
   ;;                       (wrist-roll 0)))
+
+  
   
   ;;added action just in case we want failurehandling later
 
-  (exe:perform (desig:a motion
-                        (type gripper-motion)
-                        (:open-close :close)
-                        (effort 0.1)))
+  ;; (exe:perform (desig:a motion
+  ;;                       (type gripper-motion)
+  ;;                       (:open-close :close)
+  ;;                       (effort 0.1)))
   
   (exe:perform (desig:a motion
                         (type :taking-pose)
@@ -635,7 +644,8 @@
     (:lifting (list :object-name))
     (:retracting (list :object-name :reference-frame))
     (:tilting (list :tilt-angle))
-    (:gripper (list :gripper-state))))
+    (:gripper (list :gripper-state))
+    (:taking-pose (list :pose-keyword))))
 
 
 

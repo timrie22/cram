@@ -61,6 +61,7 @@
            (?source-object-desig
              (desig:all object
                         (type :breakfast))))
+      (perc-robot)
       (talk-request "I am now perceiving!" talk)
       (exe:perform (desig:an action
                              (type detecting)
@@ -104,27 +105,32 @@
                           ;; - retracting the arm to retrieve the object from, for example, a shelf
                           (let ((?object-size (get-target-size ?current-object))
                                 (?object-pose nil)
+                                (?from-above (get-frontal-placing ?current-object))
                                 (?small-object-case (or (search "Spoon" ?current-object)
+                                                        (search "Fork" ?current-object)
                                                         (search "Bowl" ?current-object))))
                             (cond
                               ((search "Bowl" ?current-object)
                                ;;bowl i moved to the y side to be able to grasp
                                (setf ?object-pose
-                                     (make-pose-stamped-from-knowledge-result-for-bowl pose)))
+                                     (make-pose-stamped-from-knowledge-result-for-bowl-breakfast pose)))
                               (?small-object-case
                                (setf ?object-pose
-                                     (make-pose-stamped-from-knowledge-result-for-smallies pose)))
+                                     (make-pose-stamped-from-knowledge-result-for-smallies-breakfast pose)))
                               (t
                                (setf ?object-pose
                                      (make-pose-stamped-from-knowledge-result pose))))
                             (talk-request "I will now Pick up :" talk :current-knowledge-object ?current-object)
                             (when break (break))
+                            (pre-align-height-robot)
                             (exe:perform (desig:an action
                                                    (type picking-up)
                                                    (goal-pose ?object-pose)
                                                    (object-size ?object-size)
+                                                   (from-above ?from-above)
                                                    (sequence-goal ?sequence-goals)
                                                    (collision-mode :allow-all)))))))
+                     
                      (park-robot)
                      
                      ;;(call-text-to-speech-action "Moving to target location")
@@ -206,6 +212,7 @@
       (let ((?object-size (get-target-size "Milk")))
         (talk-request "I will now Pick up :" talk :current-knowledge-object "MilkPack")
         (when break (break))
+        (pre-align-height-robot)
         (exe:perform (desig:an action
                                (type picking-up)
                                (goal-pose ?milk-target-pose);; ?milk-pose)
@@ -294,14 +301,16 @@
                                     (cl-tf2::make-3d-vector 2.0  -0.1 0.7)
                                     (cl-tf2::make-quaternion 0 0 0 1)))
 
-      ((search "Spoon" obj-name)  (cl-tf2::make-pose-stamped
-                                    "map" 0
-                                    (cl-tf2::make-3d-vector 2.05 0.3 0.7)
-                                    (cl-tf2::make-quaternion 0 0 0 1)))
+      ((or (search "Spoon" obj-name)
+           (search "Fork" obj-name))
+      (cl-tf2::make-pose-stamped
+        "map" 0
+        (cl-tf2::make-3d-vector 2.05 0.3 0.75)
+        (cl-tf2::make-quaternion 0 0 0 1)))
 
       ((search "Bowl" obj-name)  (cl-tf2::make-pose-stamped
                                     "map" 0
-                                    (cl-tf2::make-3d-vector 2.0 0.15 0.7)
+                                    (cl-tf2::make-3d-vector 2.0 0.15 0.80)
                                     (cl-tf2::make-quaternion 0 0 0 1)))))
 
 (defun get-object-pos (obj-name)
@@ -316,10 +325,12 @@
                                     (cl-tf2::make-3d-vector 2.0 -0.1 0.8)
                                     (cl-tf2::make-quaternion 0 0 0 1)))
 
-      ((search "Spoon" obj-name)  (cl-tf2::make-pose-stamped
-                                    "map" 0
-                                    (cl-tf2::make-3d-vector 2.05 0.3 0.7)
-                                    (cl-tf2::make-quaternion 0 0 0 1)))
+      ((or (search "Spoon" obj-name)
+           (search "Fork" obj-name))
+       (cl-tf2::make-pose-stamped
+        "map" 0
+        (cl-tf2::make-3d-vector 2.05 0.3 0.7)
+        (cl-tf2::make-quaternion 0 0 0 1)))
 
       ((search "Bowl" obj-name)  (cl-tf2::make-pose-stamped
                                     "map" 0
@@ -331,7 +342,9 @@
   (cond
       ((search "Cereal" obj-name) (cl-tf2::make-3d-vector 0.14 0.06 0.225))
       ((search "Milk" obj-name) (cl-tf2::make-3d-vector 0.09 0.06 0.2))
-      ((search "Spoon" obj-name) (cl-tf2::make-3d-vector 0.19 0.02 0.01))
+      ((or (search "Spoon" obj-name)
+           (search "Fork" obj-name))
+       (cl-tf2::make-3d-vector 0.19 0.02 0.01))
       ((search "Bowl" obj-name) (cl-tf2::make-3d-vector 0.16 0.16 0.05))))
       
        
@@ -339,14 +352,18 @@
   (cond
       ((search "Cereal" obj-name) nil)
       ((search "Milk" obj-name) nil)
-      ((search "Spoon" obj-name) T)
+      ((or (search "Spoon" obj-name)
+           (search "Fork" obj-name))
+       T)
       ((search "Bowl" obj-name) T)))
 
 (defun get-neatly-placing (obj-name)
   (cond
       ((search "Cereal" obj-name) T)
       ((search "Milk" obj-name) T)
-      ((search "Spoon" obj-name) nil)
+      ((or (search "Spoon" obj-name)
+           (search "Fork" obj-name))
+       nil)
       ((search "Bowl" obj-name) nil)))
 
 
