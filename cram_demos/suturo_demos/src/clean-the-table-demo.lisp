@@ -51,7 +51,7 @@
 ; Perceives and picks up items from a table and places them inside a diswasher object in the urdf file.
 ;; Thereafter, it places the dishwasher tab inside as well.
 ;;
-(defun clean-the-table-demo (&key (step 0) (talk T) (break nil))
+(defun clean-the-table-demo (&key (step 0) (talk T) (break nil) (?sequence-goals nil))
                                         ;(when (<= step 0)
   (with-knowledge-result ()
       `("reset_user_data"))
@@ -151,6 +151,7 @@
                                                            (type picking-up)
                                                            (goal-pose ?object-pose)
                                                            (object-size ?object-size)
+                                                           (sequence-goal ?sequence-goals)
                                                            (from-above ?current-object-from-above)
                                                            (collision-mode :allow-all)))
                                     (park-robot)))
@@ -169,6 +170,7 @@
                                                      (goal-pose ?target-pose)
                                                      (object-size ?object-size)
                                                      (from-above t)
+                                                     (sequence-goal ?sequence-goals)
                                                      (neatly nil)
                                                      (collision-mode :allow-all)))
 

@@ -57,81 +57,72 @@
 
 
   
-(defun cml-demo (&key (step 0) (talk T))
+(defun cml-demo (&key (step 0) (talk T) (is-start T))
   (let ((percept-pub (roslisp::advertise "/robokudovanessa/query/goal"
                                          "robokudo_msgs/QueryActionGoal")))
     (init-human-detect-status)
     (init-human-pose-detect)
     (init-hsr-pose)
-    (when (<= step 0)
-      (talk-request "Hey, I am Toya i will help you to carry your Luggage.
-I will now park myself." talk)
-      (park-robot)
-      (talk-request "Please step in front of me so I can recognize you" talk)
-      (block human-init
-        ;;how to know human
-        (loop until (not (or (eq (cpl::value *human-detect-fluent-status*) 4)
-                             (eq (cpl::value *human-detect-fluent-status*) nil)))
+    (if is-start
+        (progn (talk-request "Hey, I am Toya i will help you to carry your Luggage." talk)
+               (park-robot)
+               (talk-request "I am now searching for a human" talk))
+        (talk-request "I lost you, please stop" talk))
+    
+    (block human-init
+      ;;how to know human
+      (loop until (not (or (eq (cpl::value *human-detect-fluent-status*) 4)
+                           (eq (cpl::value *human-detect-fluent-status*) nil)))
             do
-            (roslisp::publish-msg percept-pub )
-            (talk-request "Please step in front of me so I can recognize you" talk)
-            (sleep 2))
+               (roslisp::publish-msg percept-pub )
+               (talk-request "Please step in front of me so I can recognize you" talk)
+               (sleep 1.5))
       
+      (when is-start
         (talk-request "I was able to recognize you, Can you please give me the bag?" talk)
-                                        (human-assist talk)
-        (talk-request "I will now follow you, please dont move to fast. Please wave when i lost you" talk)
+        (human-assist talk))
+      
+      (talk-request "I will now follow you, please dont move to fast." talk)
+      (let ((stop-condition (cml-follow))
+            (home-pose (cl-tf:make-pose-stamped "map" 0
+                                                (cl-tf:make-3d-vector 0 0 0)
+                                                (cl-tf:make-quaternion 0 0 0 1))))
+        (unless stop-condition
+          (cml-demo :is-start nil))
+        (call-nav-action-ps-cml home-pose))
+      )))
 
-        ;(cpl::wait-for (cpl::pulsed *human-detect-fluent-position*))
-        (loop until (or (eq (cpl::value *human-detect-fluent-status*) 4)
-                        (eq (cpl::value *human-detect-fluent-status*) nil))
-              do
-                 (let* ((nav-goal (relative-angle-to (cpl::value *human-detect-fluent-position*)
-                                                     (cpl::value *hsr-pose-fluent*)
-                                                     )))
+        
+       
+ 
+(defun cml-follow (&key (talk T))
+  (cpl::pursue
+    (cpl::seq
+      (exe:perform
+       (desig:an action
+                 (type monitoring-joint-state)
+                 (joint-name "wrist_flex_joint")))
+      (talk-request "I think we arrived I hope my service was satisfactory!" talk)
+      (exe:perform (desig:a motion
+                            (type gripper-motion)
+                            (:open-close :open)
+                            (effort 0.1)))
+      t)
+    (cpl::seq
+      (loop until (or (eq (cpl::value *human-detect-fluent-status*) 4)
+                      (eq (cpl::value *human-detect-fluent-status*) nil))
+            do
+               (let* ((nav-goal (relative-angle-to (cpl::value *human-detect-fluent-position*)
+                                                   (cpl::value *hsr-pose-fluent*))))
 
-                   (cpl::pursue
-                     (progn (sleep 1)
-                            (cpl::wait-for (cpl::pulsed *human-detect-fluent-position*)))
-                     (progn
-                       (print nav-goal)
-                              (call-nav-action-ps-cml nav-goal))
-                     ))
+                 (cpl::pursue
+                   (progn (sleep 1)
+                          (cpl::wait-for (cpl::pulsed *human-detect-fluent-position*)))
+                   (progn
+                     ;; (par 
+                     (call-nav-action-ps nav-goal)))))
+      nil)))
 
-                 
-                )))))
-
-
-;;start seeing human nice
-;;following his track
-;;...
-
-
-
-
-(defun call-nav-action-ps-cml (pose-stamped)
-  "Receives stamped pose `pose-stamped'. Calls the navigation client and passes the given pose-stamped to it."  
-  (setf pose-stamped (cl-tf:copy-pose-stamped pose-stamped :origin
-                                              (cl-tf:copy-3d-vector
-                                               (cl-tf:origin pose-stamped)
-                                               :z 0.0)))
-  (multiple-value-bind (result status)
-      (let ((actionlib:*action-server-timeout* 20.0)
-            (the-goal (cl-tf:to-msg
-                       pose-stamped)))
-        (print "within navi")
-        (print pose-stamped)
-        ;;publish the pose the robot will navigate to
-        (publish-marker-pose pose-stamped :g 1.0)
-        (actionlib:call-goal
-         (get-nav-action-client)
-         (make-nav-action-goal the-goal)))
-    (roslisp:ros-info (nav-action-client)
-                      "Navigation action finished.")
-    ;; (case status
-    ;;   (:succeeded (call-text-to-speech-action "Goal reached successfully!"))
-    ;;   (otherwise (call-text-to-speech-action "Something went wrong!")))
-    (format t "result : ~a" status)
-    (values result status)))
 
 
  
@@ -152,10 +143,6 @@ given by x, y, and theta of `msg'."
 (defun relative-angle-to (goal pose-msg)
   "Given a `pose-msg' as a turtlesim-msg:pose and a `goal' as cl-transforms:3d-vector,
 calculate the angle by which the pose has to be turned to point toward the goal."
-  ;; (let ((goalpose
-  ;;         (cl-tf::transform-pose-stamped
-  ;;          cram-tf::*transformer*
-  ;;          :pose goal :target-frame "/odom")))
   (roslisp:with-fields ((?x (x Point))(?y (y Point)))
       goal
     (let* ((transformpoint
