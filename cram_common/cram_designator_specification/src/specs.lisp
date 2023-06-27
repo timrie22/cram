@@ -156,9 +156,9 @@
 
   (<- (%property ?designator (?key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?key (:joint-angle-threshold))
+    (member ?key (:joint-angle-threshold :comparison))
     (property-member (?key ?value) ?designator)
-    (assert-type ?value (or number null) "ACTION SPEC:PROPERTY"))
+    (assert-type ?value (or number keyword null) "ACTION SPEC:PROPERTY"))
 
   (<- (%property ?designator (?string-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
