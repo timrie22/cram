@@ -283,6 +283,19 @@
    (cl-tf:make-quaternion (first (third result)) (second (third result)) (third (third result)) (fourth (third result))))
   )
 
+;;@author Felix Krause
+(defun make-pose-stamped-from-knowledge-result-for-smallies-breakfast (result)
+  (let ((height (cond
+                  ((> (third (second result)) 1.12000) 1.13500)
+                  ((> (third (second result)) 0.82000) 0.83500)
+                  ((> (third (second result)) 0.52000) 0.53500)
+                  ((> (third (second result)) 0.06000) 0.07500))))
+  (cl-tf:make-pose-stamped
+   (first result) 0.0
+   (cl-tf:make-3d-vector
+    (first (second result)) (second (second result)) height)
+   (cl-tf:make-quaternion (first (third result)) (second (third result)) (third (third result)) (fourth (third result))))))
+
 
 ;;@author Felix Krause
 (defun make-pose-stamped-from-knowledge-result-for-bowl (result)
@@ -292,6 +305,14 @@
     (+ (first (second result)) 0.04) (second (second result)) (- (third (second result)) 0.02))
    (cl-tf:make-identity-rotation))
   )
+
+;;@author Felix Krause
+(defun make-pose-stamped-from-knowledge-result-for-bowl-breakfast (result)
+  (cl-tf:make-pose-stamped
+   (first result) 0.0
+   (cl-tf:make-3d-vector
+    (+ (first (second result)) 0.00) (+ (second (second result)) 0.04) (- (third (second result)) 0.01))
+   (cl-tf:make-identity-rotation)))
 
 
 ;; TODO add list of possible querys
@@ -696,6 +717,11 @@ When you are ready poke the white part of my hand." talk)
   (exe:perform (desig:an action
                         (type taking-pose)
                         (pose-keyword "park"))))
+
+(defun pre-align-height-robot ()
+  (exe:perform (desig:an action
+                        (type taking-pose)
+                        (pose-keyword "pre_align_height"))))
 
 (defun perc-robot ()
   "Default pose"
