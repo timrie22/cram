@@ -229,6 +229,8 @@
               (equal ?reference-frame nil)))
     (once (or (desig:desig-prop ?designator (:gripper-state ?gripper-state))
               (equal ?gripper-state nil)))
+    (once (or (desig:desig-prop ?designator (:pose-keyword ?pose-keyword))
+              (equal ?pose-keyword nil)))
 
     (desig:designator :action ((:type :sequence-goal)
                                (:action ?action)
@@ -247,6 +249,7 @@
                                (:tilt-angle ?tilt-angle)
                                (:reference-frame ?reference-frame)
                                (:gripper-state ?gripper-state)
+                               (:pose-keyword ?pose-keyword)
                                )
                       ?resolved-action-designator))
 
