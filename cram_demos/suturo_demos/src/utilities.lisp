@@ -229,8 +229,9 @@
 
 ;;used in go-get-it
 ;;@author Torge Olliges    
-(defun move-hsr (nav-goal-pose-stamped)
+(defun move-hsr (nav-goal-pose-stamped &optional (talk t))
   "Receives pose `nav-goal-pose-stamped'. Lets the robot move to the given pose with a motion designator"
+  (talk-request "Take care, I will now move!" talk)
   (let* ((?successfull-pose (try-movement-stamped-list
                              (list nav-goal-pose-stamped))))
     (exe:perform 
@@ -282,6 +283,19 @@
    (cl-tf:make-quaternion (first (third result)) (second (third result)) (third (third result)) (fourth (third result))))
   )
 
+;;@author Felix Krause
+(defun make-pose-stamped-from-knowledge-result-for-smallies-breakfast (result)
+  (let ((height (cond
+                  ((> (third (second result)) 1.12000) 1.13500)
+                  ((> (third (second result)) 0.82000) 0.83500)
+                  ((> (third (second result)) 0.52000) 0.53500)
+                  ((> (third (second result)) 0.06000) 0.07500))))
+  (cl-tf:make-pose-stamped
+   (first result) 0.0
+   (cl-tf:make-3d-vector
+    (first (second result)) (second (second result)) height)
+   (cl-tf:make-quaternion (first (third result)) (second (third result)) (third (third result)) (fourth (third result))))))
+
 
 ;;@author Felix Krause
 (defun make-pose-stamped-from-knowledge-result-for-bowl (result)
@@ -291,6 +305,14 @@
     (+ (first (second result)) 0.04) (second (second result)) (- (third (second result)) 0.02))
    (cl-tf:make-identity-rotation))
   )
+
+;;@author Felix Krause
+(defun make-pose-stamped-from-knowledge-result-for-bowl-breakfast (result)
+  (cl-tf:make-pose-stamped
+   (first result) 0.0
+   (cl-tf:make-3d-vector
+    (+ (first (second result)) 0.00) (+ (second (second result)) 0.04) (- (third (second result)) 0.01))
+   (cl-tf:make-identity-rotation)))
 
 
 ;; TODO add list of possible querys
@@ -558,11 +580,11 @@
   (talk-request "I will need some help from the human,i will now move my arm, please be care: " talk)
   ;;this can also be used for bowl
   (cpl:seq
-    (call-take-pose-action 0 0 0 0 0 -1.5 -1.5 1.6))
-  (exe:perform (desig:a motion
-                        (type gripper-motion)
-                        (:open-close :open)
-                        (effort 0.1)))
+    (wait-robot)
+    (exe:perform (desig:a motion
+                          (type gripper-motion)
+                          (:open-close :open)
+                          (effort 0.1))))
   ;;todo what if we dont find the plate?
   (talk-request "Please give me the Plate,
 When you are ready poke the white part of my hand." talk)
@@ -581,10 +603,27 @@ When you are ready poke the white part of my hand." talk)
                         (effort 0.1))))
 
 
-(defun talk-request (talk-string talk)
+
+(defun talk-request (talk-string talk &key (current-knowledge-object nil))
+  "Use this function as follow (talk-string 'I will now pick up ' t/n :current-knowledge-object 'http...#bowl_34123')"
   ;;just added a when around it so we can decide if toya should be silent
-  (when talk
-    (call-text-to-speech-action talk-string)))
+ (let* ((talkery talk-string))
+  (when current-knowledge-object
+    (setf talkery (concatenate 'string talk-string  (trim-knowledge-string current-knowledge-object))))
+  (when talk (call-text-to-speech-action talkery))))
+
+(defun trim-knowledge-string (current-knowledge-object)
+  "trims the knowledge name, when it is with http"
+  (let* ((?obj-start (or (search "#" current-knowledge-object)
+                         0))
+	(?obj-trim 
+		      (string-trim "'"
+				   (string-trim "|"
+						(subseq current-knowledge-object ?obj-start)))))
+    (let* ((?obj-end (search "_" ?obj-trim))
+           (?obj (subseq (string-trim "#" ?obj-trim) 0 ?obj-end)))
+      ?obj)))
+
 
 
 (defun extract-percept-msg-obj-type-to-string (?list-of-objects)
@@ -638,3 +677,60 @@ When you are ready poke the white part of my hand." talk)
 
 ;;;;;;;;;;;;
 ;; VANESSA -----------------------------------------------------------------END
+
+
+;;;;;;;;;;; VIZBOX ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;@author Tim Rienits
+;; Print on VizBox what the Robot is saying.
+(defun vizbox-robot-says (message)
+
+    (let ((pub (roslisp:advertise "robot_text" "std_msgs/String")))
+        (sleep 1)
+        (roslisp:publish-msg pub :data (format nil message)))
+  )
+
+;;@author Tim Rienits
+;; Print on VizBox what the robot has heard the operator say.
+(defun vizbox-robot-heard (message)
+  
+    (let ((pub (roslisp:advertise "operator_text" "std_msgs/String")))
+
+        (sleep 1)
+        (roslisp:publish-msg pub :data (format nil message)))
+  )
+
+;;@author Tim Rienits
+;; Sets the current step of the plan to new_step (starts at 0).
+(defun vizbox-set-step (new_step)
+
+    (let ((pub (roslisp:advertise "challenge_step" "std_msgs/UInt32")))
+
+        (sleep 1)
+        (roslisp:publish-msg pub :data new_step))
+  )
+
+;; Luca
+
+(defun park-robot ()
+  "Default pose"
+  (exe:perform (desig:an action
+                        (type taking-pose)
+                        (pose-keyword "park"))))
+
+(defun pre-align-height-robot ()
+  (exe:perform (desig:an action
+                        (type taking-pose)
+                        (pose-keyword "pre_align_height"))))
+
+(defun perc-robot ()
+  "Default pose"
+  (exe:perform (desig:an action
+                        (type taking-pose)
+                        (pose-keyword "perceive"))))
+
+(defun wait-robot ()
+  "Default pose"
+  (exe:perform (desig:an action
+                        (type taking-pose)
+                        (pose-keyword "assistance"))))

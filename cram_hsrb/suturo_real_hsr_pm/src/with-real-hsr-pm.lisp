@@ -89,6 +89,8 @@
         (desig:desig-prop ?motion-designator (:type :picking-up))
         (desig:desig-prop ?motion-designator (:type :sequence-goal))
         (desig:desig-prop ?motion-designator (:type :taking-pose))
+        (desig:desig-prop ?motion-designator (:type :gripper))
+                
        ;; (desig:desig-prop ?motion-designator (:type :going))
         (desig:desig-prop ?motion-designator (:type :moving-torso))
         (desig:desig-prop ?motion-designator (:type :moving-custom))
