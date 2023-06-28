@@ -70,6 +70,8 @@
   ((:module "src"
             :components
             ((:file "package")
+             (:file "setup" :depends-on ("package"))
+             (:file "utils" :depends-on ("package"))
              (:file "gpsr-knowledge" :depends-on ("package"))
              (:file "gpsr-subscribers" :depends-on ("package"))
              (:file "gpsr-plans" :depends-on ("package"))
