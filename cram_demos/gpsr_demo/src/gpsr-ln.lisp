@@ -45,9 +45,9 @@
         (navigate-to-location :nil :start-point);;; go to the initial position
         (cram-talker "STARTING") 
         (print "GPSR starts"))
-    
-    (when (eq ?nlplistner-word :FAIL)
-      (cram-talker "FAIL"))
+      
+      (when (eq ?nlplistner-word :FAIL)
+        (cram-talker "FAIL"))
 		     
     (print ?nlplistner-word)
     ;;)
