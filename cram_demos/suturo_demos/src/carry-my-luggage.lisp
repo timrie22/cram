@@ -72,6 +72,7 @@
           (cpl:make-fluent :name :human-detect-fluent-position))
         (hsr-pose-fluent
           (cpl:make-fluent :name :hsr-pose-fluent)))
+    
     (flet ((perceptresult (msg)
              (roslisp:with-fields
                  ((?result (status status)))
@@ -79,7 +80,7 @@
                (setf (cpl::value human-detect-fluent-status) ?result)))
 
            (humanpose (msg)
-               (setf (cpl::value human-detect-fluent-position) msg))
+             (setf (cpl::value human-detect-fluent-position) msg))
 
            (hsrpose (msg)
              (roslisp:with-fields ((?pose (pose)))
@@ -98,7 +99,7 @@
 
       (if is-start
           (progn (talk-request "Hey, I am Toya i will help you to carry your Luggage." talk)
-                 ;;(park-robot)
+                 (park-robot)
                  (talk-request "I am now searching for a human" talk))
           (talk-request "I lost you, please stop" talk))
       
@@ -114,7 +115,7 @@
         (when is-start
           (talk-request "I was able to recognize you, Can you please give me the bag?" talk)
                                         ;(human-assist talk))
-          )
+          (carry-robot))
         
         (talk-request "I will now follow you, please dont move to fast." talk)
         (let ((stop-condition t)
@@ -124,10 +125,9 @@
                                                   (cl-tf:make-quaternion 0 0 0 1))))
           (cpl::pursue
             (cpl::seq
-              (exe:perform
-               (desig:an action
-                         (type monitoring-joint-state)
-                         (joint-name "wrist_flex_joint")))
+              
+
+              (monitoring-mega-function)         
               (talk-request "I think we arrived I hope my service was satisfactory!" talk)
               (exe:perform (desig:a motion
                                     (type gripper-motion)
@@ -151,12 +151,46 @@
           
           (unless stop-condition
             (cml-demo :is-start nil))
-                                      (call-nav-action-ps home-pose))
-          
-        ))))
+          (call-nav-action-ps home-pose))))))
 
         
-       
+(defun monitoring-mega-function (&key (talk T))
+  (let((hsr-monitoring-flex-up-bool)
+       (hsr-monitoring-flex-down-bool)
+       (time-ok))
+    
+    (loop until (and hsr-monitoring-flex-up-bool
+                     hsr-monitoring-flex-down-bool
+                     time-ok)
+          do
+             
+               (cpl:seq
+                 (talk-request "Please shake my hand" talk)
+                 
+                 (setf hsr-monitoring-flex-up-bool nil)
+                 (setf hsr-monitoring-flex-down-bool nil)
+                 
+                 (exe:perform
+                  (desig:an action
+                            (type monitoring-joint-state)
+                            ;;todo change joint
+                            (joint-name "wrist_flex_joint")))
+                 (let ((time-begin (cl::get-universal-time)))
+                 (setf hsr-monitoring-flex-up-bool t)
+
+                 (exe:perform
+                  (desig:an action
+                            (type monitoring-joint-state)
+                            (comparison :greater)
+                            (joint-name "wrist_flex_joint")))
+                 (setf hsr-monitoring-flex-down-bool t)
+                 
+                 (talk-request "ok thanks" talk)
+                 (print "time:")
+                 (print  (- (cl::get-universal-time) time-begin))
+                 
+                 (when (< (- (cl::get-universal-time) time-begin) 2.2)
+                   (setf time-ok t)))))))
  
 ;; (defun cml-follow (&key (talk T))
 ;;   (cpl::pursue
