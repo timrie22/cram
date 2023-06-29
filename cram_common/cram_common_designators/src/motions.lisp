@@ -212,7 +212,7 @@
               (equal ?context nil))))
 
 
-  (<- (motion-grounding ?designator (lift ?left-pose ?right-pose
+  (<- (motion-grounding ?designator (vertical-motion ?left-pose ?right-pose
                                               ?collision-mode
                                               ?collision-object-b
                                               ?collision-object-b-link
@@ -222,9 +222,11 @@
                                               ?align-planes-right
                                               ?straight-line
                                               ?precise-tracking
-                                              ?goal-pose
+                                              ?context
+                                              ?distance
                                               ))
-    (property ?designator (:type :lifting))
+    (or (property ?designator (:type :vertical-motion))
+        (property ?designator (:type :lifting)))
     (once (or (property ?designator (:left-pose ?left-pose))
               (equal ?left-pose nil)))
     (once (or (property ?designator (:right-pose ?right-pose))
@@ -250,8 +252,10 @@
               (equal ?align-planes-right nil)))
     (once (or (desig:desig-prop ?designator (:precise-tracking ?precise-tracking))
               (equal ?precise-tracking nil)))
-    (once (or (desig:desig-prop ?designator (:goal-pose ?goal-pose))
-              (equal ?goal-pose nil))))
+    (once (or (desig:desig-prop ?designator (:context ?context))
+              (equal ?context nil)))
+    (once (or (desig:desig-prop ?designator (:distance ?distance))
+              (equal ?distance nil))))
 
   (<- (motion-grounding ?designator (retract ?left-pose ?right-pose
                                               ?collision-mode
@@ -497,7 +501,7 @@
                                               ?collision-object-a
                                               ?gripper-state
                                               ))
-     (property ?designator (:type :gripper))
+    (property ?designator (:type :gripper))
      (once (or (property ?designator (:left-pose ?left-pose))
                (equal ?left-pose nil)))
      (once (or (property ?designator (:right-pose ?right-pose))
@@ -511,11 +515,13 @@
                (equal ?collision-object-b-link nil)))
      (once (or (desig:desig-prop ?designator (:collision-object-a ?collision-object-a))
                (equal ?collision-object-a nil)))
-    
      (once (or (desig:desig-prop ?designator (:gripper-state ?gripper-state))
-               (equal ?gripper-state nil)))
-    )
+               (equal ?gripper-state nil))))
 
+  (<- (motion-grounding ?designator (carry-my-luggage ?drive-back))
+    (property ?designator (:type :cml))    
+    (once (or (desig:desig-prop ?designator (:drive-back ?drive-back))
+              (equal ?drive-back nil))))
   
 
 
