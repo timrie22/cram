@@ -9,10 +9,11 @@
 (defparameter *plan-details-subscriber* nil)
 (defparameter *nlp-feedback-subscriber* nil)
 
+(defparameter *plan-queue* '())
 
-(defvar *plan-fluent* (cpl:make-fluent :name :plan-fluent))
-(defvar *plan-details-fluent* (cpl:make-fluent :name :plan-details-fluent ))
-(defvar *nlp-feedback-fluent* (cpl:make-fluent :name :nlp-feedback-fluent ))
+(defparameter *plan-fluent* (cpl:make-fluent :name :plan-fluent))
+(defparameter *plan-details-fluent* (cpl:make-fluent :name :plan-details-fluent ))
+(defparameter *nlp-feedback-fluent* (cpl:make-fluent :name :nlp-feedback-fluent ))
 
 ;;; ---- init ----
 
@@ -33,29 +34,45 @@
   (roslisp:ros-info (NLP-Feedback-Subscriber) "NLP Feedback Subscriber created."))
 
 ;;; ---- Callbacks ----
-
+ 
 (defun plan-subscriber-cb-function (?message)
   (roslisp:with-fields (commands) ?message
     (setf (cpl:value *plan-fluent*) (intern (string-upcase (aref commands 0)) :keyword)))
   ;;results of this input can be: :DONE :START :FAIL
-  (format t "plan-fluent value: ~a" *plan-fluent*))
+  ;;reset plan que when new plans get published onto this topic
+  ;;(setf *plan-queue* nil)
+  (format t "plan-fluent value: ~a ~%" *plan-fluent*))
   
 
 (defun plan-details-subscriber-cb-function (?message)
-  (setf (cpl:value *plan-details-fluent*) ?message)
-  (format t "plan-details-fluent value: ~a" *plan-details-fluent*))
+  ;;do some formating on the input. create list of symbols
+  (format t "plan-details msgs received: ~a ~%" ?message)
+  (let* ((?input-list  (map 'list #'(lambda (item)
+                                      (intern (string-upcase
+                                               (substitute #\- #\space item)) :keyword))
+                            ;;;iterate through items in the given list
+                            (roslisp:with-fields (commands) ?message
+                              commands)))
+         ;;save the list in a struct
+         ;;apply is used to pass values from list to create-plan-details function
+         (?plan-struct (apply #'create-plan-details ?input-list)))
+    (setf *plan-queue* (append (list ?plan-struct) *plan-queue*))
+    (setf (cpl:value *plan-details-fluent*) ?plan-struct) ;;write struct into fluent
+    
+    ;;setf *plan-queue* (list ?plan-struct)))
+    (format t "plan-details-fluent value: ~a ~%" *plan-details-fluent*)))
 
 
 (defun nlp-feedback-subscriber-cb-function (?message)
   (setf (cpl:value *nlp-feedback-fluent*) ?message)
   ;;(nlp-feedback "START") ;;debugging
-  (format t "nlp-feedback-fluent value: ~a" *nlp-feedback-fluent*)
+  (format t "nlp-feedback-fluent value: ~a ~%" *nlp-feedback-fluent*)
   (print "nlp is ready"))
 
 
 ;;; ---- debug utils ----
 (defun reset-fluents()
-  (setf *plan-fluent* (cpl:make-fluent :name :plan-fluent))
-  (setf *plan-details-fluent* (cpl:make-fluent :name :plan-details-fluent))
-  (setf *nlp-feedback-fluent* (cpl:make-fluent :name :nlp-feedback-fluent)))
+  (setf (cpl:value *plan-fluent*) nil)
+  (setf (cpl:value *plan-details-fluent*) nil)
+  (setf (cpl:value *nlp-feedback-fluent*) nil))
 

@@ -17,7 +17,8 @@
          
 ;;TODO the speaker might be not necessary at all
 (defun hsrtospeak ()
-  (setf *hsr-speaker-subscriber* (roslisp:subscribe "hsrspeaker" "std_msgs/String" #'hsrspeaks-callback-function)))
+  (setf *hsr-speaker-subscriber*
+        (roslisp:subscribe "NLP_say" "std_msgs/String" #'hsrspeaks-callback-function)))
 
 (defun hsrspeaks-callback-function (message)
   (roslisp:with-fields (data) message  

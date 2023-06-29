@@ -69,13 +69,14 @@
   :components
   ((:module "src"
             :components
-            ((:file "package")
-             (:file "setup" :depends-on ("package"))
+            ((:file "package")            
              (:file "utils" :depends-on ("package"))
              (:file "gpsr-knowledge" :depends-on ("package"))
              (:file "gpsr-subscribers" :depends-on ("package"))
+             (:file "setup" :depends-on ("package"))
              (:file "gpsr-plans" :depends-on ("package"))
              (:file "gpsr-ln" :depends-on ("package"))
              (:file "gpsr-pub" :depends-on ("package"))
+             (:file "nlp-testing" :depends-on ("package"))
              (:file "gpsr-clean-plans" :depends-on ("package"))
              (:file "gpsr-demo" :depends-on ("package"))))))
