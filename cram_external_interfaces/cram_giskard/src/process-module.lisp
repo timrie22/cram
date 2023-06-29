@@ -240,6 +240,7 @@
       (cram-common-designators:carry-my-luggage
        (giskard::call-cml-action
         :drive-back argument-1
+        :laser-distance-threshold (first rest-args)
         ))
       )))
 

@@ -108,9 +108,16 @@
   (<- (gripper-convergence-delta :hsrb "hand_l_mimic_distal_joint" 0.001))
 
   ;; wrist flex joint
-  (<- (gripper-minimal-position :hsrb "wrist_flex_joint" -1.5011))
-  (<- (gripper-maximal-position :hsrb "wrist_flex_joint" 1.03))
+  ;; (<- (gripper-minimal-position :hsrb "wrist_flex_joint" -1.17119))
+  ;; (<- (gripper-maximal-position :hsrb "wrist_flex_joint" -1.1689111))
+  (<- (gripper-minimal-position :hsrb "wrist_flex_joint" -1.5719))
+  (<- (gripper-maximal-position :hsrb "wrist_flex_joint" -1.5695))
   (<- (gripper-convergence-delta :hsrb "wrist_flex_joint" 0.001))
+
+  ;; arm flex joint
+  (<- (gripper-minimal-position :hsrb "arm_flex_joint" -0.02986912640)) ;;13678903))
+  (<- (gripper-maximal-position :hsrb "arm_flex_joint" -1.168703))
+  (<- (gripper-convergence-delta :hsrb "arm_flex_joint" 0.00))
 
   ;; default  
   (<- (gripper-minimal-position :hsrb ?_ 0))

@@ -518,10 +518,12 @@
      (once (or (desig:desig-prop ?designator (:gripper-state ?gripper-state))
                (equal ?gripper-state nil))))
 
-  (<- (motion-grounding ?designator (carry-my-luggage ?drive-back))
+  (<- (motion-grounding ?designator (carry-my-luggage ?drive-back ?laser-distance-threshold))
     (property ?designator (:type :cml))    
     (once (or (desig:desig-prop ?designator (:drive-back ?drive-back))
-              (equal ?drive-back nil))))
+              (equal ?drive-back nil)))
+    (once (or (desig:desig-prop ?designator (:laser-distance-threshold ?laser-distance-threshold))
+              (equal ?laser-distance-threshold nil))))
   
 
 
