@@ -241,6 +241,7 @@
        (giskard::call-cml-action
         :drive-back argument-1
         :laser-distance-threshold (first rest-args)
+        :clear-path (second rest-args)
         ))
       )))
 
