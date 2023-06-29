@@ -29,7 +29,7 @@ action server."
   (roslisp:ros-info (take-pose-action-client)
                     "Take pose action client initialised"))
 
-;;(roslisp-utilities:register-ros-init-function init-take-pose-action-client)
+;; (roslisp-utilities:register-ros-init-function init-take-pose-action-client)
 
 ;;@author Jan Schimpf
 ;;Makes and returns an action client goal. It turns the size-x, size-y and size-z into avector3.

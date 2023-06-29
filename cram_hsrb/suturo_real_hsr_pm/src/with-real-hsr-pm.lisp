@@ -75,6 +75,7 @@
   (prolog:<- (cpm:matching-process-module ?motion-designator giskard:giskard-pm)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
         (desig:desig-prop ?motion-designator (:type :reaching))
+        (desig:desig-prop ?motion-designator (:type :vertical-motion))
         (desig:desig-prop ?motion-designator (:type :lifting))
         (desig:desig-prop ?motion-designator (:type :retracting))
         (desig:desig-prop ?motion-designator (:type :aligning-height))
@@ -90,6 +91,7 @@
         (desig:desig-prop ?motion-designator (:type :sequence-goal))
         (desig:desig-prop ?motion-designator (:type :taking-pose))
         (desig:desig-prop ?motion-designator (:type :gripper))
+        (desig:desig-prop ?motion-designator (:type :cml))
                 
        ;; (desig:desig-prop ?motion-designator (:type :going))
         (desig:desig-prop ?motion-designator (:type :moving-torso))

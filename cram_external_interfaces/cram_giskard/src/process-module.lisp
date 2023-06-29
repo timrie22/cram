@@ -90,10 +90,6 @@
         :action-type-or-position argument-1
         :arm (first rest-args)
         :effort (second rest-args)))
-      (cram-common-designators:move-gripper
-       (giskard:call-custom-gripper-action
-        :open-gripper argument-1
-        ))
       (cram-common-designators:reach
        (giskard:call-arm-cartesian-action
         :goal-pose-left argument-1
@@ -115,7 +111,7 @@
         :context (nth 15 rest-args)
         :action-type 'reach
         ))
-      (cram-common-designators:lift
+      (cram-common-designators:vertical-motion
        (giskard:call-arm-cartesian-action
         :goal-pose-left argument-1
         :goal-pose-right (first rest-args)
@@ -129,8 +125,9 @@
         :align-planes-left (eighth rest-args)
         :align-planes-right (ninth rest-args)
         :precise-tracking (nth 10 rest-args); that's eleventh element
-        :goal-pose (nth 11 rest-args)
-        :action-type 'lift
+        :context (nth 11 rest-args)
+        :distance (nth 12 rest-args)
+        :action-type 'vertical-motion
         ))
       (cram-common-designators:retract
        (giskard:call-arm-cartesian-action
@@ -239,6 +236,12 @@
         :collision-object-a (fifth rest-args)
         :gripper-state (sixth rest-args)
         :action-type 'gripper
+        ))
+      (cram-common-designators:carry-my-luggage
+       (giskard::call-cml-action
+        :drive-back argument-1
+        :laser-distance-threshold (first rest-args)
+        :clear-path (second rest-args)
         ))
       )))
 
