@@ -12,7 +12,7 @@
 ;;ugly. keep one. 
 (defun nlp-feedback (command)
   "Periodically print a string message on the /chatter topic"
-  (let ((pub (roslisp:advertise "CRAMpub" "std_msgs/String")))    
+  (let ((pub (roslisp:advertise "CRAMpub" "std_msgs/String" :latch nil)))    
     (roslisp:publish-msg pub :data (format nil command))))
          
 ;;TODO the speaker might be not necessary at all
@@ -23,7 +23,7 @@
   (roslisp:with-fields (data) message  
     (let ((?tospeak data))
       (print ?tospeak)
-      (call-text-to-speech-action ?tospeak)
+      (su-demos::call-text-to-speech-action ?tospeak)
       )))
 
 ;;(defun startgpsr (topic-name) ;;; 9 june

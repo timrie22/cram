@@ -754,3 +754,10 @@ When you are ready poke the white part of my hand." talk)
   (exe:perform (desig:an action
                         (type taking-pose)
                         (pose-keyword "assistance"))))
+
+(defun carry-robot ()
+  "Default pose"
+  (exe:perform (desig:an action
+                        (type taking-pose)
+                        (pose-keyword "carry"))))
+
