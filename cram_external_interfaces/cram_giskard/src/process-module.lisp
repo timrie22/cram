@@ -245,6 +245,7 @@
         :footprint-radius (third rest-args)
         :last-distance-threshold (fourth rest-args)
         :height-for-camera-target (fifth rest-args)
+        :laser-avoidance-max-x (sixth rest-args)
         ))
       )))
 
