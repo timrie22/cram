@@ -1,7 +1,7 @@
 (in-package :su-demos)
 
 
-(defun opening-popcorn-demo (&key max-objects skip-open-shelf skip-shelf-perception joint-angle collision-mode)
+(defun opening-popcorn-demo (&key max-objects skip-open-shelf skip-shelf-perception joint-angle collision-mode talk)
 
   (let ((popcorndrawer "fake_dishwasher_tray:dishwasher:drawer_bottom")
         (handle-link "iai_kitchen/fake_dishwasher_tray:dishwasher:drawer_handle"))
@@ -69,8 +69,8 @@
     (let* ((?source-object-desig nil)
            (?object-desig nil)
            (?current-object nil)
-           (?current-object-from-above nil))
-
+           (?current-object-from-above nil)
+           (mug nil))
       ;;move to table
       (when (<= step 1)
         (move-hsr (make-pose-stamped-from-knowledge-result table) talk))
@@ -91,7 +91,8 @@
             `("next_object" nextobject)
           (when break (break))
           
-          (loop until (string= nextobject "I")
+          (loop until (and (string= nextobject "I")
+                           (eq mug nil))
                 do
                     (move-hsr (make-pose-stamped-from-knowledge-result table) talk)
                     ;;set next object and current object
@@ -102,80 +103,156 @@
                        (setf ?current-object nextobject)
                        (setf nextobject result))
                      
+                     (when (eq ?current-object nil)
+                       (setf ?current-object mug))
+
+                     (when (and (eq mug nil)
+                                (search "Mug" ?current-object))
+                       (setf mug ?current-object)
+                       (setf ?current-object nil))
                      
                      (when break (break))
-                     
-                     (with-knowledge-result (frame pose)
-                         `(and ("object_shape_workaround" ,?current-object frame _ _ _)
-                               ("object_pose" ,?current-object pose))
-                            
-                            ;;get object size (hardcoded) and object pose
-                            ;;get target size comes from serve-breakfast...
-                            (let ((?object-size (get-target-size-clean-up ?current-object))
-                                  (?object-pose nil)
-                                  (?small-object-case (or (search "Fork" ?current-object)
-                                                          (search "Spoon" ?current-object)
-                                                          (search "PlasticKnife" ?current-object)
-                                                          (search "Knife" ?current-object)
-                                                          (search "Bowl" ?current-object))))
-                              ;;but tricky trick, set bowl pose different and smallies ;;hardcoded stuff
-                              (cond
-                                ((search "Bowl" ?current-object)
-                                 ;;bowl i moved to the y side to be able to grasp
-                                 (setf ?object-pose
-                                       (make-pose-stamped-from-knowledge-result-for-bowl pose)))
-                                (?small-object-case
-                                 (setf ?object-pose
-                                       (make-pose-stamped-from-knowledge-result-for-smallies pose)))
-                                (t
-                                 (setf ?object-pose
-                                       (make-pose-stamped-from-knowledge-result pose))))
-                                 ;;true or nil depending on our let above
-                              (setf ?current-object-from-above ?small-object-case)
+                     (when ?current-object
+                       (with-knowledge-result (pose)
+                           `("object_pose" ,?current-object pose)
+                         
+                         ;;get object size (hardcoded) and object pose
+                         ;;get target size comes from serve-breakfast...
+                         (let ((?object-size (get-target-size-clean-up ?current-object))
+                               (?object-pose nil)
+                               (?from-above nil)
+                               (?small-object-case (or (search "Fork" ?current-object)
+                                                       (search "Spoon" ?current-object)
+                                                       (search "PlasticKnife" ?current-object)
+                                                       (search "Knife" ?current-object)
+                                                       (search "Bowl" ?current-object))))
+                           ;;but tricky trick, set bowl pose different and smallies ;;hardcoded stuff
+                           (cond
+                             ((search "Bowl" ?current-object)
+                              ;;bowl i moved to the y side to be able to grasp
+                              (setf ?object-pose
+                                    (make-pose-stamped-from-knowledge-result-for-bowl pose)))
+                             ((search "Mug" ?current-object)
+                              ;;bowl i moved to the y side to be able to grasp
+                              (setf ?object-pose
+                                    (make-pose-stamped-from-knowledge-result-for-mug pose)))
+                             (?small-object-case
+                              (setf ?object-pose
+                                    (make-pose-stamped-from-knowledge-result-for-smallies pose)))
+                             (t
+                              (setf ?object-pose
+                                    (make-pose-stamped-from-knowledge-result pose))))
+                           ;;true or nil depending on our let above
+                           (setf ?current-object-from-above ?small-object-case)
 
-                              (if (search "MetalPlate" ?current-object)
-                                  ;;maybe put this into a better function
-                                  (human-assist talk)
-                                  (progn
-                                    ;;pick up object
-                                    ;;care from my site atm no failure handling failure handling should only be disabled when from-above
-                                      (when break (break))
-                                    (talk-request "I will now Pick up :" talk :current-knowledge-object ?current-object)
-                                        ;(print (concatenate 'string "object-pose" ?object-pose))
-                                        ;(print (concatenate 'string "object-size" ?object-size))
-                                        ;(print (concatenate 'string "current-object-from-above" ?current-object-from-above))
-                                    
-                                    (when break (break))
-                                    
-                                    (exe:perform (desig:an action
-                                                           (type picking-up)
-                                                           (goal-pose ?object-pose)
-                                                           (object-size ?object-size)
-                                                           (sequence-goal ?sequence-goals)
-                                                           (from-above ?current-object-from-above)
-                                                           (collision-mode :allow-all)))
-                                    (park-robot)))
-                              
-                              
-                              
+                           (cond
+                             ((search "MetalPlate" ?current-object)
+                              ;; (setf ?plate ?current-object)
+                              ;;maybe put this into a better function
+                              (human-assist talk)
                               ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
                               (move-hsr (make-pose-stamped-from-knowledge-result popcorntable) talk)
-                             
+                              
                               (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
 
                               (when break (break))
+
+                              (setf ?from-above (get-above-placing-clean-up "Plate"))
 
                               (exe:perform (desig:an action
                                                      (type :placing)
                                                      (goal-pose ?target-pose)
                                                      (object-size ?object-size)
-                                                     (from-above t)
+                                                     (from-above ?from-above)
                                                      (sequence-goal ?sequence-goals)
                                                      (neatly nil)
                                                      (collision-mode :allow-all)))
 
                               (talk-request "I placed the Object!" talk)
-                              (park-robot))))))))))
+                              (park-robot))
+                                ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                             ((and (search "Mug" ?current-object)
+                                   (search "Mug" mug))
+                              (break)
+                              (let ((?target-pose (get-target-pos-clean-up "Mug")))
+                                (when break (break))
+                                (talk-request "I will now Pick up :" talk :current-knowledge-object ?current-object)                                    
+                                (when break (break))
+                                
+                                (exe:perform (desig:an action
+                                                       (type picking-up)
+                                                       (goal-pose ?object-pose)
+                                                       (object-size ?object-size)
+                                                       (sequence-goal ?sequence-goals)
+                                                       (from-above ?current-object-from-above)
+                                                       (collision-mode :allow-all)))
+                                ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
+                                (move-hsr (make-pose-stamped-from-knowledge-result popcorntable) talk)
+                                
+                                (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
+
+                                (when break (break))
+                                (setf ?from-above (get-above-placing-clean-up "Mug"))
+                                (exe:perform (desig:an action
+                                                       (type :placing)
+                                                       (goal-pose ?target-pose)
+                                                       (object-size ?object-size)
+                                                       (from-above ?from-above)
+                                                       (sequence-goal ?sequence-goals)
+                                                       (neatly nil)
+                                                       (collision-mode :allow-all)))
+
+                                (talk-request "I placed the Object!" talk)
+                                (park-robot))
+                              (setf mug nil))
+                                ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                             ((not (eq ?current-object nil))
+                              (with-knowledge-result (mugpose)
+                                  `(and ("has_type" mug ,(transform-key-to-string :MetalMug))
+                                        ("object_pose" mug mugpose))
+                                (let ((?target-pose (cond
+                                                      (mugpose
+                                                       (make-pose-stamped-from-knowledge-result-for-mug mugpose))
+                                                      (t (get-target-pos-clean-up nextobject)))))
+                                  
+                                  ;;pick up object
+                                  ;;care from my site atm no failure handling failure handling should only be disabled when from-above
+                                  (when break (break))
+                                  (talk-request "I will now Pick up :" talk :current-knowledge-object ?current-object)
+                                        ;(print (concatenate 'string "object-pose" ?object-pose))
+                                        ;(print (concatenate 'string "object-size" ?object-size))
+                                        ;(print (concatenate 'string "current-object-from-above" ?current-object-from-above))
+                                  
+                                  (when break (break))
+                                  
+                                  (exe:perform (desig:an action
+                                                         (type picking-up)
+                                                         (goal-pose ?object-pose)
+                                                         (object-size ?object-size)
+                                                         (sequence-goal ?sequence-goals)
+                                                         (from-above ?current-object-from-above)
+                                                         (collision-mode :allow-all)))
+                                  (park-robot)
+
+                                  (move-hsr (make-pose-stamped-from-knowledge-result table) talk)
+                                  
+                                  (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
+
+                                  (when break (break))
+                                  (setf ?from-above (get-above-placing-clean-up ?current-object))
+                                  (let ((?inside (when (get-inside-clean-up ?current-object) mug)))
+                                    (exe:perform (desig:an action
+                                                           (type :placing)
+                                                           (goal-pose ?target-pose)
+                                                           (object-size ?object-size)
+                                                           (from-above ?from-above)
+                                                           (sequence-goal ?sequence-goals)
+                                                           (inside ?inside) 
+                                                           (neatly nil)
+                                                           (collision-mode :allow-all))))
+
+                                  (talk-request "I placed the Object!" talk)
+                                  (park-robot)))))))))))))))
 
 
 
@@ -183,7 +260,7 @@
 (defun get-target-pos-clean-up (obj-name)
   ;;todo delete bowl out of here i think idk hehe
   (if (search "Bowl" obj-name)
-     (cl-tf2::make-pose-stamped "map" 0
+     (cl-tf2::make-pose-stamped "map" 02
                                (cl-tf2::make-3d-vector 0.20 0.8 0.85)
                                (cl-tf2::make-quaternion 0 0 0 1)))
   ;;           (search "Spoon" obj-name)
@@ -198,12 +275,34 @@
   (cond
       ((search "Cereal" obj-name) (cl-tf2::make-3d-vector 0.14 0.06 0.225))
       ((search "Milk" obj-name) (cl-tf2::make-3d-vector 0.09 0.06 0.2))
-      ((search "Spoon" obj-name) (cl-tf2::make-3d-vector 0.16 0.06 0.125)) ;;actually 1,2 1,3
-      ((search "Fork" obj-name) (cl-tf2::make-3d-vector 0.16 0.06 0.125)) 
+      ((search "Spoon" obj-name) (cl-tf2::make-3d-vector 0.16 0.06 0.155)) ;;actually 1,2 1,3
+      ((search "Fork" obj-name) (cl-tf2::make-3d-vector 0.16 0.06 0.155)) 
       ((search "PlasticKnife" obj-name) (cl-tf2::make-3d-vector 0.16 0.06 0.125))
       ((search "Bowl" obj-name) (cl-tf2::make-3d-vector 0.8 0.16 0.05)) ;;8 was 16 doing hacky stuff
-      ((search "Mug" obj-name) (cl-tf2::make-3d-vector 0.9 0.9 0.04))
-      ((search "MetalPlate" obj-name) (cl-tf2::make-3d-vector 0.26 0.26 0.0125))))   
+      ((search "Mug" obj-name) (cl-tf2::make-3d-vector 0.9 0.9 0.08))
+      ((search "MetalPlate" obj-name) (cl-tf2::make-3d-vector 0.26 0.26 0.0125))))
+
+(defun get-inside-clean-up (obj-name)
+  (cond
+      ((search "Cereal" obj-name) nil)
+      ((search "Milk" obj-name) nil)
+      ((search "Spoon" obj-name) t) ;;actually 1,2 1,3
+      ((search "Fork" obj-name) t) 
+      ((search "PlasticKnife" obj-name) t)
+      ((search "Bowl" obj-name) nil) ;;8 was 16 doing hacky stuff
+      ((search "Mug" obj-name) nil)
+      ((search "MetalPlate" obj-name) nil)))
+
+(defun get-above-placing-clean-up (obj-name)
+  (cond
+      ((search "Cereal" obj-name) nil)
+      ((search "Milk" obj-name) nil)
+      ((search "Spoon" obj-name) nil) ;;actually 1,2 1,3
+      ((search "Fork" obj-name) nil) 
+      ((search "PlasticKnife" obj-name) nil)
+      ((search "Bowl" obj-name) t) ;;8 was 16 doing hacky stuff
+      ((search "Mug" obj-name) nil)
+      ((search "MetalPlate" obj-name) t)))
 
 
 ;;@author Felix Krause

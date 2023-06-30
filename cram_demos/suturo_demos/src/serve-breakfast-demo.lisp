@@ -158,7 +158,7 @@
                                                 (neatly ?neatly)
                                                 (collision-mode :allow-all)))
                          (talk-request "I placed the Object!" talk)
-                         (su-demos::with-knowledge-result ()
+                         (with-knowledge-result ()
                              `("object_pose" ,?current-object ,(reformat-stamped-pose-for-knowledge (get-object-pos ?current-object)))
                            (talk-request "I will now perceive the object again!" talk)
                            (perc-robot)
@@ -215,13 +215,12 @@
         (pre-align-height-robot)
         (exe:perform (desig:an action
                                (type picking-up)
-                               (goal-pose ?milk-target-pose);; ?milk-pose)
+                               (goal-pose ?milk-target-pose)
                                (sequence-goal ?sequence-goals)
                                (object-size ?object-size)
                                (collision-mode :allow-all)))
         (park-robot)
         
-        ;;(call-text-to-speech-action "Moving to target location")
         ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
         (move-hsr (make-pose-stamped-from-knowledge-result table) talk)
         (talk-request "I will now pour:" talk :current-knowledge-object "MilkPack")
@@ -430,8 +429,16 @@
                           (:open-close :close)
                           (effort 0.1)))))
 
-(defun luca-test (name pose)
-  (cram-occasions-events:on-event
-                 (make-instance 'cram-plan-occasions-events:object-detached-robot-knowrob
-                   :name name
-                   :pose pose)))
+(defun luca-test ()
+  (let ((str (string-downcase (symbol-name :test-test-test-tes-tes-tes-tes-te-s-tes))))
+    (loop while (search "-" str)
+          do
+             (setf str (replace str "_" :start1 (search "-" str))))
+    str))
+
+  ;; (cram-occasions-events:on-event
+  ;;                (make-instance 'cram-plan-occasions-events:object-detached-robot-knowrob
+  ;;                  :name name
+  ;;                  :pose pose)))
+
+
