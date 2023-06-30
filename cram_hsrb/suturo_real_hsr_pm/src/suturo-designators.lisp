@@ -94,6 +94,8 @@
               (equal ?from-above nil)))
     (once (or (desig:desig-prop ?designator (:neatly ?neatly))
               (equal ?neatly nil)))
+    (once (or (desig:desig-prop ?designator (:inside ?inside))
+              (equal ?inside nil)))
     (once (or (desig:desig-prop ?designator (:sequence-goal ?sequence-goal))
               (equal ?sequence-goal nil)))
 
@@ -112,6 +114,7 @@
                                (:object-size ?object-size)
                                (:from-above ?from-above)
                                (:neatly ?neatly)
+                               (:inside ?inside)
                                (:sequence-goal ?sequence-goal))
                       ?resolved-action-designator))
 
@@ -141,6 +144,8 @@
               (equal ?precise-tracking nil)))
     (once (or (desig:desig-prop ?designator (:handle-link ?handle-link))
               (equal ?handle-link nil)))
+    (once (or (desig:desig-prop ?designator (:handle-pose ?handle-pose))
+              (equal ?handle-pose nil)))
     (once (or (desig:desig-prop ?designator (:joint-angle ?joint-angle))
               (equal ?joint-angle nil)))
 
@@ -156,6 +161,7 @@
                                (:straight-line ?straight-line)
                                (:precise-tracking ?precise-tracking)
                                (:handle-link ?handle-link)
+                               (:handle-pose ?handle-pose)
                                (:joint-angle ?joint-angle))
                       ?resolved-action-designator))
 
@@ -223,6 +229,8 @@
               (equal ?target-size nil)))
     (once (or (desig:desig-prop ?designator (:target-name ?target-name))
               (equal ?target-name nil)))
+    (once (or (desig:desig-prop ?designator (:tilt-direction ?tilt-direction))
+              (equal ?tilt-direction nil)))
     (once (or (desig:desig-prop ?designator (:tilt-angle ?tilt-angle))
               (equal ?tilt-angle nil)))
     (once (or (desig:desig-prop ?designator (:reference-frame ?reference-frame))
@@ -247,6 +255,7 @@
                                (:target-size ?target-size)
                                (:target-name ?target-name)
                                (:tilt-angle ?tilt-angle)
+                               (:tilt-direction ?tilt-direction)
                                (:reference-frame ?reference-frame)
                                (:gripper-state ?gripper-state)
                                (:pose-keyword ?pose-keyword)

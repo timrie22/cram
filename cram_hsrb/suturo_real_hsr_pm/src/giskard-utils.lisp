@@ -67,8 +67,6 @@
         ))))
 
 (defmethod coe:on-event giskard-perceived ((event cpoe:object-perceived-event-knowrob))
-  (print event)
-  ;;(break)
   (unless cram-projection:*projection-environment*
     (roslisp:with-fields ((frame (cl-transforms-stamped:frame-id cram-designators::pose cram-designators:data))
                           (w0 (w cl-transforms:orientation cram-designators::pose cram-designators:data))
@@ -82,11 +80,12 @@
                           (shape (cram-designators::shape-size cram-designators:data))
                          )
         (cpoe:event-object-designator event)
-      (roslisp:with-fields ((radius (radius))
-                            (x-size (x robokudo_msgs-msg::dimensions))
-                            (y-size (y robokudo_msgs-msg::dimensions))
-                            (z-size (z robokudo_msgs-msg::dimensions)))
-          (svref shape 0)
+      ;; (roslisp:with-fields ((radius (radius))
+      ;;                       (x-size (x robokudo_msgs-msg::dimensions))
+      ;;                       (y-size (y robokudo_msgs-msg::dimensions))
+      ;;                       (z-size (z robokudo_msgs-msg::dimensions)))
+      ;;     (svref shape 0)
+      
       (su-demos::with-knowledge-result (name)
           `("create_object" name ,(su-demos::transform-key-to-string (second (second description)))  ;;TODO Extract keyword
                             (list ,frame
@@ -101,8 +100,8 @@
         (print name)
         ;; (add-object-to-collision-scene-knowrob
         ;;  name)
-        )))))
-
+        ))))
+;;)
 
 ;;;;;;;;;;;;;;;;;;;;;;;; KNOWROB UTILS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -272,18 +271,28 @@
                                      (object ?source-object-desig))))
             (?knowledge-name 
               (roslisp:with-fields ((frame (cl-transforms-stamped:frame-id cram-designators::pose cram-designators:data))
-                                    (w0 (w cl-transforms:orientation cram-designators::pose cram-designators:data))
-                                    (w1 (x cl-transforms:orientation cram-designators::pose cram-designators:data))
-                                    (w2 (y cl-transforms:orientation cram-designators::pose cram-designators:data))
-                                    (w3 (z cl-transforms:orientation cram-designators::pose cram-designators:data))
-                                    (x (x cl-transforms:origin cram-designators::pose cram-designators:data))
-                                    (y (y cl-transforms:origin cram-designators::pose cram-designators:data))
-                                    (z (z cl-transforms:origin cram-designators::pose cram-designators:data))
+                                    (w0 (w cl-tf:orientation cram-designators::pose cram-designators:data))
+                                    (w1 (x cl-tf:orientation cram-designators::pose cram-designators:data))
+                                    (w2 (y cl-tf:orientation cram-designators::pose cram-designators:data))
+                                    (w3 (z cl-tf:orientation cram-designators::pose cram-designators:data))
+                                    (x (x cl-tf:origin cram-designators::pose cram-designators:data))
+                                    (y (y cl-tf:origin cram-designators::pose cram-designators:data))
+                                    (z (z cl-tf:origin cram-designators::pose cram-designators:data))
                                     (radius (robokudo_msgs-msg::radius cram-designators::objectsize cram-designators:data))
                                     (x-size (x_size robokudo_msgs-msg::dimensions cram-designators::objectsize cram-designators:data))
                                     (y-size (y_size robokudo_msgs-msg::dimensions cram-designators::objectsize cram-designators:data))
                                     (z-size (z_size robokudo_msgs-msg::dimensions cram-designators::objectsize cram-designators:data)))
                   ?object-desig
+                (print w1)
+                (break)
+                (when (> w1 0)
+                  (let ((new-rot (cl-tf:q* (cl-tf:make-quaternion w1 w2 w3 w0) (cl-tf:make-quaternion 1 0 0 0))))
+                    (setf w0 (cl-tf:w new-rot))
+                    (setf w1 (cl-tf:x new-rot))
+                    (setf w2 (cl-tf:y new-rot))
+                    (setf w3 (cl-tf:z new-rot))
+                    ))
+                  
                 (su-demos::with-knowledge-result (name)
                     `("create_object" name (|:| "soma" "CrackerBox")
                             (list ,frame
