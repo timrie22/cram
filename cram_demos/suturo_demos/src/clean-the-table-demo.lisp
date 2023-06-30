@@ -22,8 +22,6 @@
    
     (cond ((equal skip-open-shelf NIL)
 
-           (vizbox-set-step 0) ;; Vizbox, clean-the-table-demo needs to be -1 in each step when not opening door.
-
            ;;Move to the shelf to a perceive pose.
            (with-knowledge-result (result)
                `(and ("has_urdf_name" object ,popcorndrawer)
@@ -75,12 +73,10 @@
            (mug nil))
       ;;move to table
       (when (<= step 1)
-        (vizbox-set-step 1) ;; Vizbox
         (move-hsr (make-pose-stamped-from-knowledge-result table) talk))
       
       ;;perceive  and set 
       (when (<= step 2)
-        (vizbox-set-step 2) ;; Vizbox
         (perc-robot)
         (talk-request "I am now perceiving!" talk)
         (setf ?source-object-desig
@@ -89,8 +85,7 @@
         (setf ?object-desig
               (exe:perform (desig:an action
                                      (type detecting)
-                                     (object ?source-object-desig))))
-        (vizbox-set-step 3)) ;; Vizbox
+                                     (object ?source-object-desig)))))
       (when (<= step 3)
         (with-knowledge-result (nextobject)
             `("next_object" nextobject)
@@ -99,7 +94,6 @@
           (loop until (and (string= nextobject "I")
                            (eq mug nil))
                 do
-                    (vizbox-set-step 4) ;; Vizbox
                     (move-hsr (make-pose-stamped-from-knowledge-result table) talk)
                     ;;set next object and current object
                     ;;own clean up hardcoded
@@ -155,10 +149,8 @@
                              ((search "MetalPlate" ?current-object)
                               ;; (setf ?plate ?current-object)
                               ;;maybe put this into a better function
-                              (vizbox-set-step 5) ;; Vizbox
                               (human-assist talk)
                               ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
-                              (vizbox-set-step 6) ;; Vizbox
                               (move-hsr (make-pose-stamped-from-knowledge-result popcorntable) talk)
                               
                               (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
@@ -167,7 +159,6 @@
 
                               (setf ?from-above (get-above-placing-clean-up "Plate"))
 
-                              (vizbox-set-step 7) ;; Vizbox
                               (exe:perform (desig:an action
                                                      (type :placing)
                                                      (goal-pose ?target-pose)
@@ -187,8 +178,7 @@
                                 (when break (break))
                                 (talk-request "I will now Pick up :" talk :current-knowledge-object ?current-object)                                    
                                 (when break (break))
-
-                                (vizbox-set-step 5) ;; Vizbox
+                                
                                 (exe:perform (desig:an action
                                                        (type picking-up)
                                                        (goal-pose ?object-pose)
@@ -197,14 +187,12 @@
                                                        (from-above ?current-object-from-above)
                                                        (collision-mode :allow-all)))
                                 ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
-                                (vizbox-set-step 6) ;; Vizbox
                                 (move-hsr (make-pose-stamped-from-knowledge-result popcorntable) talk)
                                 
                                 (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
 
                                 (when break (break))
                                 (setf ?from-above (get-above-placing-clean-up "Mug"))
-                                (vizbox-set-step 7) ;; Vizbox
                                 (exe:perform (desig:an action
                                                        (type :placing)
                                                        (goal-pose ?target-pose)
@@ -236,8 +224,7 @@
                                         ;(print (concatenate 'string "current-object-from-above" ?current-object-from-above))
                                   
                                   (when break (break))
-
-                                  (vizbox-set-step 5) ;; Vizbox
+                                  
                                   (exe:perform (desig:an action
                                                          (type picking-up)
                                                          (goal-pose ?object-pose)
@@ -247,7 +234,6 @@
                                                          (collision-mode :allow-all)))
                                   (park-robot)
 
-                                  (vizbox-set-step 6) ;; Vizbox
                                   (move-hsr (make-pose-stamped-from-knowledge-result table) talk)
                                   
                                   (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
@@ -255,7 +241,6 @@
                                   (when break (break))
                                   (setf ?from-above (get-above-placing-clean-up ?current-object))
                                   (let ((?inside (when (get-inside-clean-up ?current-object) mug)))
-                                    (vizbox-set-step 7) ;; Vizbox
                                     (exe:perform (desig:an action
                                                            (type :placing)
                                                            (goal-pose ?target-pose)
@@ -267,8 +252,7 @@
                                                            (collision-mode :allow-all))))
 
                                   (talk-request "I placed the Object!" talk)
-                                  (park-robot))))))))))
-          (vizbox-set-step 8)))))) ;; Vizbox
+                                  (park-robot)))))))))))))))
 
 
 
