@@ -431,10 +431,20 @@
                :jellostrawberrybox)
               (:teabagbox
                :teabagbox)
-              (:handle
-               :handle)
               (:pastrybox
-               :pastrybox))))
+               :pastrybox)
+              (:pear
+               :pear)
+              (:lemon
+               :lemon)
+              (:banana
+               :banana)
+              (:pottedmeatcan
+               :pottedmeatcan)
+              (:peach
+               :peach)
+              (:plum
+               :plum))))
       (setf rs-answer
             (subst-if `(:type ,cram-type)
                       (lambda (x)

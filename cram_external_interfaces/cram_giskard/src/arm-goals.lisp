@@ -77,18 +77,20 @@
                             :weight_below_ca)))))))))
 
 ;;@author Luca Krohm
-(defun make-lift-constraint (object-name
+(defun make-vertical-motion-constraint (context distance
                              &key avoid-collisions-not-much)
   "Receives parameters used by manipulation. Creates Constraint of the type LiftObject which is a classname inside the manipulation code, which is responsible for 'lifting'"  
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
-   "LiftObject"
+   "VerticalMotion"
    :parameter_value_pair
    (giskard::alist->json-string
-    `(,@(when object-name
-          `(("object_name"
-             . ,object-name)))      
+    `(("context"
+       . ,context)
+      ,@(when distance
+          `(("distance"
+             . ,distance)))
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
                            'giskard_msgs-msg:constraint
@@ -312,7 +314,8 @@
                                          arm-roll
                                          wrist-flex
                                          wrist-roll
-                                         gripper-state)
+                                         gripper-state
+                                         distance)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type (or null string) pose-base-frame)
            (type boolean prefer-base straight-line
@@ -399,8 +402,8 @@
                    ;; Constraints for motions
                    (when (eq action-type 'reach)
                      (make-reach-constraint goal-pose object-name object-size object-shape context))
-                   (when (eq action-type 'lift)
-                     (make-lift-constraint "object_name" ))
+                   (when (eq action-type 'vertical-motion)
+                     (make-vertical-motion-constraint context distance))
                    (when (eq action-type 'retract)
                       (make-retract-constraint "object_name" tip-link))
                    (when (eq action-type 'align-height)
@@ -608,7 +611,8 @@
                                     arm-roll
                                     wrist-flex
                                     wrist-roll
-                                    gripper-state)
+                                    gripper-state
+                                    distance)
   (declare (type (or number null) action-timeout)
            (type (or cl-transforms-stamped:pose-stamped null)
                  goal-pose-left goal-pose-right)
@@ -671,7 +675,8 @@
                  :arm-roll arm-roll
                  :wrist-flex wrist-flex
                  :wrist-roll wrist-roll
-                 :gripper-state gripper-state)
+                 :gripper-state gripper-state
+                 :distance distance)
    :action-timeout action-timeout
    ;; :check-goal-function (lambda (result status)
    ;;                        (declare (ignore result status))
