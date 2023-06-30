@@ -320,7 +320,16 @@
   (cl-tf:make-pose-stamped
    (first result) 0.0
    (cl-tf:make-3d-vector
-    (+ (first (second result)) 0.04) (second (second result)) (- (third (second result)) 0.02))
+    (+ (first (second result)) 0.00) (second (second result)) (- (third (second result)) 0.02))
+   (cl-tf:make-identity-rotation))
+  )
+
+;;@author Felix Krause
+(defun make-pose-stamped-from-knowledge-result-for-mug (result)
+  (cl-tf:make-pose-stamped
+   (first result) 0.0
+   (cl-tf:make-3d-vector
+    (- (first (second result)) 0.0) (+ (second (second result)) 0.02) 0.76000)
    (cl-tf:make-identity-rotation))
   )
 

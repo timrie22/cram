@@ -23,6 +23,7 @@
 ;; @author Luca Krohm
 (defun fix-prolog-string (prolog-symbol)
   (typecase prolog-symbol
+    (null nil)
     (symbol (let ((result (symbol-name prolog-symbol)))
               (subseq result 1 (- (length result) 1))))
     (list (mapcar #'fix-prolog-string prolog-symbol))
