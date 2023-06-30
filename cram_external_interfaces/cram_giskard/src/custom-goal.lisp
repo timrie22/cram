@@ -1,11 +1,11 @@
 (in-package :giskard)
 
 
-(defun make-cml-action-goal (drive-back laser-distance-threshold clear-path)
+(defun make-cml-action-goal (drive-back laser-distance-threshold clear-path footprint-radius last-distance-threshold height-for-camera-target)
     ;; (declare  (type cl-transforms-stamped:pose-stamped knob-pose)
     ;;           (type boolean grasp-type))
   (giskard::make-giskard-goal
-   :joint-constraints (make-cml-constraint drive-back laser-distance-threshold clear-path)))
+   :joint-constraints (make-cml-constraint drive-back laser-distance-threshold clear-path footprint-radius last-distance-threshold height-for-camera-target)))
 
 (defun ensure-cml-gripper-goal-input ()
 )
@@ -17,9 +17,12 @@
                           action-timeout
                           drive-back
                           laser-distance-threshold
-                          clear-path)
+                          clear-path
+                          footprint-radius
+                          last-distance-threshold
+                          height-for-camera-target)
   (giskard::call-action
-   :action-goal (make-cml-action-goal drive-back laser-distance-threshold clear-path)
+   :action-goal (make-cml-action-goal drive-back laser-distance-threshold clear-path footprint-radius last-distance-threshold height-for-camera-target)
    :action-timeout action-timeout)
   ;; :check-goal-function (lambda (result status)
   ;;                        ;; This check is only done after the action
@@ -31,7 +34,7 @@
   ;;                            :goal-not-achieved-yet)))re
   )
 
-(defun make-cml-constraint (drive-back laser-distance-threshold clear-path)
+(defun make-cml-constraint (drive-back laser-distance-threshold clear-path footprint-radius last-distance-threshold height-for-camera-target)
   ;; (declare  (type cl-transforms-stamped:pose-stamped goal-pose))
   (roslisp:make-message
    'giskard_msgs-msg:constraint
@@ -47,4 +50,14 @@
              . ,laser-distance-threshold)))
       ,@(when clear-path
           `(("clear_path"
-             . ,clear-path)))))))
+             . ,clear-path)))
+      ,@(when footprint-radius
+          `(("footprint_radius"
+             . ,footprint-radius)))
+      ,@(when last-distance-threshold
+          `(("last_distance_threshold"
+             . ,last-distance-threshold)))
+      ,@(when height-for-camera-target
+          `(("height_for_camera_target"
+             . ,height-for-camera-target)))
+      ))))

@@ -242,6 +242,9 @@
         :drive-back argument-1
         :laser-distance-threshold (first rest-args)
         :clear-path (second rest-args)
+        :footprint-radius (third rest-args)
+        :last-distance-threshold (fourth rest-args)
+        :height-for-camera-target (fifth rest-args)
         ))
       )))
 

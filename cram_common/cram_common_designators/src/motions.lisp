@@ -518,14 +518,26 @@
      (once (or (desig:desig-prop ?designator (:gripper-state ?gripper-state))
                (equal ?gripper-state nil))))
 
-  (<- (motion-grounding ?designator (carry-my-luggage ?drive-back ?laser-distance-threshold ?clear-path))
+  (<- (motion-grounding ?designator (carry-my-luggage ?drive-back
+                                                      ?laser-distance-threshold
+                                                      ?clear-path
+                                                      ?footprint-radius
+                                                      ?last-distance-threshold
+                                                      ?height-for-camera-target))
     (property ?designator (:type :cml))    
     (once (or (desig:desig-prop ?designator (:drive-back ?drive-back))
               (equal ?drive-back nil)))
     (once (or (desig:desig-prop ?designator (:laser-distance-threshold ?laser-distance-threshold))
               (equal ?laser-distance-threshold nil)))
     (once (or (desig:desig-prop ?designator (:clear-path ?clear-path))
-              (equal ?clear-path nil))))
+              (equal ?clear-path nil)))
+    (once (or (desig:desig-prop ?designator (:footprint-radius ?footprint-radius))
+              (equal ?footprint-radius nil)))
+    (once (or (desig:desig-prop ?designator (:last-distance-threshold ?last-distance-threshold))
+              (equal ?last-distance-threshold nil)))
+    (once (or (desig:desig-prop ?designator (:height-for-camera-target ?height-for-camera-target))
+              (equal ?height-for-camera-target nil)))
+    )
   
 
 
