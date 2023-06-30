@@ -523,7 +523,8 @@
                                                       ?clear-path
                                                       ?footprint-radius
                                                       ?last-distance-threshold
-                                                      ?height-for-camera-target))
+                                                      ?height-for-camera-target
+                                                      ?laser-avoidance-max-x))
     (property ?designator (:type :cml))    
     (once (or (desig:desig-prop ?designator (:drive-back ?drive-back))
               (equal ?drive-back nil)))
@@ -537,6 +538,8 @@
               (equal ?last-distance-threshold nil)))
     (once (or (desig:desig-prop ?designator (:height-for-camera-target ?height-for-camera-target))
               (equal ?height-for-camera-target nil)))
+    (once (or (desig:desig-prop ?designator (:laser-avoidance-max-x ?laser-avoidance-max-x))
+              (equal ?laser-avoidance-max-x nil)))
     )
   
 
