@@ -52,7 +52,6 @@
     (talk-request "Hello I am Toya, i will now serve breakfast!" talk)
 
     (when (<= step 1)
-      (vizbox-set-step 0) ;; Vizbox
       (move-hsr (make-pose-stamped-from-knowledge-result shelf) talk)
       (sleep 1))
 
@@ -62,15 +61,11 @@
            (?source-object-desig
              (desig:all object
                         (type :breakfast))))
-
-      (vizbox-set-step 1) ;; Vizbox
       (perc-robot)
       (talk-request "I am now perceiving!" talk)
       (exe:perform (desig:an action
                              (type detecting)
                              (object ?source-object-desig)))
-
-      (vizbox-set-step 2) ;; Vizbox
       
       (with-knowledge-result (nextobject)
           `("next_object" nextobject)
@@ -88,7 +83,6 @@
                    (print nextobject)
                    ;; (break)
                    (progn
-                     (vizbox-set-step 3) ;; Vizbox
                      (move-hsr (make-pose-stamped-from-knowledge-result shelf) talk)
                      (cond
                        ((search "CerealBox" ?current-object) (setf ?found-cereal ?current-object))
@@ -128,7 +122,6 @@
                                      (make-pose-stamped-from-knowledge-result pose))))
                             (talk-request "I will now Pick up :" talk :current-knowledge-object ?current-object)
                             (when break (break))
-                            (vizbox-set-step 4) ;; Vizbox
                             (pre-align-height-robot)
                             (exe:perform (desig:an action
                                                    (type picking-up)
@@ -142,7 +135,6 @@
                      
                      ;;(call-text-to-speech-action "Moving to target location")
                      ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
-                     (vizbox-set-step 5) ;; Vizbox
                      (move-hsr (make-pose-stamped-from-knowledge-result table) talk)
                      
                      ;; places the object by executing the following motions:
@@ -157,7 +149,6 @@
                          ;; ?frontal-placing and ?neatly are currently the same for each object, thats why i just use the same function until after the milestone
                          (talk-request "I will now place: " talk :current-knowledge-object ?current-object)
                          (when break (break))
-                         (vizbox-set-step 6) ;; Vizbox
                          (exe:perform (desig:an action
                                                 (type :placing)
                                                 (goal-pose ?target-pose)
@@ -170,7 +161,6 @@
                          (with-knowledge-result ()
                              `("object_pose" ,?current-object ,(reformat-stamped-pose-for-knowledge (get-object-pos ?current-object)))
                            (talk-request "I will now perceive the object again!" talk)
-                           (vizbox-set-step 7) ;; Vizbox
                            (perc-robot)
                            (exe:perform (desig:an action
                                                   (type detecting)
@@ -187,7 +177,6 @@
           (?milk-target-pose (get-object-pos "Milk"))
           (?bowl-frame bowlframe))
 
-      (vizbox-set-step 8) ;; Vizbox
       (talk-request "I will now pour:" talk :current-knowledge-object ?current-object)
       (when break (break))
       (exe:perform (desig:an action
@@ -256,9 +245,7 @@
                                (neatly T)
                                (collision-mode :allow-all)))
         (talk-request "I placed the Object! " talk)
-        (park-robot))))
-        (vizbox-set-step 9) ;; Vizbox
-      )))
+        (park-robot)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;; Hardcoded stuff for debugging ;;;;;;;;;;;;
