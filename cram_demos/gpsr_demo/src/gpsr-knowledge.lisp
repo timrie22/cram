@@ -69,10 +69,10 @@
    (cl-transforms:make-identity-rotation)))
 
 
- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
- ;;;; object knowledge
- 
-(defparameter *gpsr-objects* '((:apple :apple :fruits :living-room :bookcase)    ;; nlp-name cram-name category df-room df-loc-in-room  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; object knowledge
+;; nlp-name cram-name category df-room df-loc-in-room
+(defparameter *gpsr-objects* '((:apple :apple :fruits :living-room :bookcase)      
                                (:bag :bag :container :living-room :end-table)
                                (:basket :basket :container :living-room :end-table)
                                (:bottle :bottle :container :kitchen :end-table)
@@ -108,8 +108,8 @@
 
 
 ;;;; location knowledge
-
-(defparameter *gpsr-rooms-locations* '((:bedroom :bed :desk :side-table)  ;;;; :room :location1-in-room :location2-in-room ...
+;;; :room :location1-in-room :location2-in-room ...
+(defparameter *gpsr-rooms-locations* '((:bedroom :bed :desk :side-table)  
                                        (:living-room :exit :couch :end-table :bookcase)
                                        (:kitchen :cupboard :storage-table :sink :counter :dishwasher)
                                        (:dinning-room :dinning-table)
@@ -149,12 +149,12 @@
 
 
 ;;;; nlp personal pronouns mapping with cram
-
-(defvar *gpsr-pronouns* '((:object :objects :it)  ;;;; :title :per-pronoun1 :per-pronoun2 ...
+;; :title :per-pronoun1 :per-pronoun2 ...
+(defvar *gpsr-pronouns* '((:object :objects :it)  
                           (:location :there :here)
                           (:person :me :him :her :them :they)))
 
-(defvar *gpsr-attributes* '((:heavy)  ;;;; :title :per-pronoun1 :per-pronoun2 ...
+(defvar *gpsr-attributes* '((:heavy)  
 			    (:heaviest)
 			    (:small)
 			    (:smallest)
